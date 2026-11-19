@@ -368,6 +368,49 @@
             border-radius: 3px;
             letter-spacing: 0.02em;
         }
+
+        .play-hero {
+            background: radial-gradient(ellipse at 78% 45%, rgba(220, 38, 38, .28), transparent 38%),
+                linear-gradient(115deg, #171717 0%, #111 58%, #220c0c 100%);
+        }
+
+        .discovery-card {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            min-height: 132px;
+            background: linear-gradient(135deg, #211010, #151515 70%);
+            transition: transform .25s ease, border-color .25s ease;
+        }
+
+        .discovery-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(220, 38, 38, .55);
+        }
+
+        .discovery-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(90deg, rgba(10, 10, 10, .94), rgba(10, 10, 10, .58) 58%, rgba(10, 10, 10, .2));
+        }
+
+        .discovery-card img {
+            position: absolute;
+            inset: 0;
+            z-index: -2;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .7;
+            transition: transform .4s ease;
+        }
+
+        .discovery-card:hover img { transform: scale(1.06); }
+
+        .featured-mini:hover img { transform: scale(1.06); }
+        .featured-mini img { transition: transform .4s ease; }
     </style>
 </head>
 
@@ -512,25 +555,49 @@
             </section>
 
             <!-- ===== PLAY GAMES ===== -->
-                      <section id="playSection" class="page-section">
-    <div class="mb-6">
-        <h1 class="text-2xl md:text-3xl font-black tracking-tight">Play <span class="text-eh-red">Games</span></h1>
-        <p class="text-eh-muted text-sm mt-1">Jump right in — no download needed</p>
-    </div>
-    <div class="flex flex-col sm:flex-row gap-3 mb-4">
-        <div class="relative flex-1">
-            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
-            <input type="text" id="playSearch" oninput="filterPlayGames()" placeholder="Search games..."
-                class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
-        </div>
-    </div>
-    <div id="playCategoryFilters" class="flex gap-2 flex-wrap mb-5"></div>
-    <div id="playGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-    <div id="playEmpty" class="hidden text-center py-20">
-        <i data-lucide="search-x" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
-        <p class="text-eh-muted">No games found</p>
-    </div>
-    <div id="playLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <section id="playSection" class="page-section">
+                <div class="play-hero relative overflow-hidden border border-eh-border rounded-3xl p-6 md:p-10 mb-8">
+                    <div class="relative z-10 max-w-xl">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-eh-red/15 border border-eh-red/30 text-red-300 text-[11px] font-bold uppercase tracking-widest mb-4">
+                            <span class="w-1.5 h-1.5 rounded-full bg-eh-red animate-pulse"></span> Instant play
+                        </span>
+                        <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">Find your next <span class="text-eh-red">favorite</span></h1>
+                        <p class="text-eh-muted text-sm md:text-base mt-3 max-w-md">Jump into quick games, discover new genres, and play right here — no download needed.</p>
+                        <div class="flex flex-wrap gap-3 mt-6">
+                            <button onclick="document.getElementById('playGrid').scrollIntoView({behavior:'smooth'})" class="red-btn px-5 py-3 rounded-xl text-white text-sm font-bold flex items-center gap-2"><i data-lucide="gamepad-2" class="w-4 h-4"></i> Explore games</button>
+                            <button onclick="document.getElementById('playSearch').focus()" class="outline-btn px-5 py-3 rounded-xl text-sm font-semibold text-eh-text flex items-center gap-2"><i data-lucide="search" class="w-4 h-4"></i> Search</button>
+                        </div>
+                        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-6 text-[11px] font-medium text-eh-dim"><span>✓ Free to play</span><span>✓ No install</span><span>✓ Play in your browser</span></div>
+                    </div>
+                    <div class="absolute -right-8 -bottom-16 md:right-8 md:bottom-1 text-[170px] md:text-[230px] leading-none opacity-[.07] select-none pointer-events-none">🎮</div>
+                </div>
+
+                <div class="flex items-end justify-between gap-3 mb-4">
+                    <div><h2 class="text-xl md:text-2xl font-black">Browse <span class="text-eh-red">categories</span></h2><p class="text-eh-muted text-xs mt-1">Pick a vibe and find something fun</p></div>
+                    <button onclick="setPlayCategory('All')" class="text-xs font-semibold text-eh-muted hover:text-eh-red transition-colors">View all games <span aria-hidden="true">→</span></button>
+                </div>
+                <div id="playCategoryFilters" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-8"></div>
+
+                <div class="flex items-end justify-between gap-3 mb-4">
+                    <div><h2 class="text-xl md:text-2xl font-black">Featured <span class="text-eh-red">games</span></h2><p class="text-eh-muted text-xs mt-1">A few picks to get you started</p></div>
+                    <span id="playGameCount" class="text-xs text-eh-dim"></span>
+                </div>
+                <div id="playFeatured" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"></div>
+
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4">
+                    <div><h2 class="text-xl md:text-2xl font-black">All <span class="text-eh-red">games</span></h2><p class="text-eh-muted text-xs mt-1">Pick a game and start playing</p></div>
+                    <div class="relative w-full sm:w-72">
+                        <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
+                        <input type="text" id="playSearch" oninput="filterPlayGames()" placeholder="Search games..." aria-label="Search games"
+                            class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
+                    </div>
+                </div>
+                <div id="playGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                <div id="playEmpty" class="hidden text-center py-20">
+                    <i data-lucide="search-x" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+                    <p class="text-eh-muted">No games found</p>
+                </div>
+                <div id="playLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden">
             <div class="skeleton h-40"></div>
             <div class="p-4">
@@ -1708,6 +1775,7 @@ pauiLoadAccess();
                 playGamesData = Array.isArray(games) ? games : [];
                 playGamesLoaded = true;
                 buildPlayCategoryFilters();
+                renderPlayDiscovery();
                 renderPlayCards(getFilteredPlayGames());
             } catch (err) {
                 console.error('Failed to load games.json:', err);
@@ -1720,24 +1788,35 @@ pauiLoadAccess();
         }
 
         function buildPlayCategoryFilters() {
-            const cats = ['All', ...new Set(
-                playGamesData.map(g => g.category).filter(Boolean).sort()
-            )];
-            document.getElementById('playCategoryFilters').innerHTML = cats.map(c => `
-                <button onclick="setPlayCategory('${c}')"
-                    class="play-cat-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all
-                    ${c === playActiveCategory ? 'bg-eh-red text-white' : 'bg-eh-card border border-eh-border text-eh-muted hover:text-eh-text hover:border-eh-border-l'}"
-                    data-play-cat="${c}">${c}</button>
-            `).join('');
+            const categories = [...new Set(playGamesData.map(g => g.category).filter(Boolean).sort())];
+            const categoryIcons = { arcade: '🕹️', puzzle: '🧩', action: '⚔️', sports: '🏆', racing: '🏎️', adventure: '🗺️', strategy: '♟️', casual: '✨', multiplayer: '👥' };
+            const getIcon = category => categoryIcons[category.toLowerCase()] || '🎮';
+            const categoryCards = [
+                `<button type="button" onclick="setPlayCategory('All')" class="discovery-card rounded-2xl border ${playActiveCategory === 'All' ? 'border-eh-red' : 'border-eh-border'} p-4 text-left text-white" data-play-cat="All"><span class="text-2xl">🎮</span><span class="block mt-3 text-sm font-bold">All games</span><span class="block mt-1 text-[11px] text-white/60">${playGamesData.length} games</span></button>`,
+                ...categories.map(category => {
+                    const sample = playGamesData.find(g => g.category === category);
+                    const count = playGamesData.filter(g => g.category === category).length;
+                    return `<button type="button" onclick="setPlayCategory('${escapeHtml(category)}')" class="discovery-card rounded-2xl border ${playActiveCategory === category ? 'border-eh-red' : 'border-eh-border'} p-4 text-left text-white" data-play-cat="${escapeHtml(category)}">${sample && sample.thumb ? `<img src="${escapeHtml(sample.thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}<span class="text-2xl">${getIcon(category)}</span><span class="block mt-3 text-sm font-bold truncate">${escapeHtml(category)}</span><span class="block mt-1 text-[11px] text-white/60">${count} ${count === 1 ? 'game' : 'games'}</span></button>`;
+                })
+            ];
+            document.getElementById('playCategoryFilters').innerHTML = categoryCards.join('');
+        }
+
+        function renderPlayDiscovery() {
+            const featured = playGamesData.slice(0, 4);
+            document.getElementById('playGameCount').textContent = `${playGamesData.length} games to explore`;
+            document.getElementById('playFeatured').innerHTML = featured.map((game, index) => `
+                <button type="button" onclick="openPlayGameItem(playGamesData[${playGamesData.indexOf(game)}])" class="featured-mini relative overflow-hidden rounded-2xl border border-eh-border bg-eh-card text-left aspect-[4/3] group">
+                    <img src="${escapeHtml(game.thumb || '')}" alt="${escapeHtml(game.title || 'Game')}" loading="lazy" class="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:opacity-90" onerror="this.style.display='none'">
+                    <span class="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent"></span>
+                    <span class="absolute left-3 bottom-3 right-3"><span class="inline-block px-2 py-1 rounded-md bg-eh-red text-white text-[9px] font-bold uppercase tracking-wider mb-2">${index === 0 ? 'Popular pick' : escapeHtml(game.category || 'Play now')}</span><span class="block text-sm font-bold text-white truncate">${escapeHtml(game.title || 'Untitled')}</span></span>
+                </button>`).join('');
+            lucide.createIcons();
         }
 
         function setPlayCategory(cat) {
             playActiveCategory = cat;
-            document.querySelectorAll('.play-cat-btn').forEach(btn => {
-                const on = btn.dataset.playCat === cat;
-                btn.className = 'play-cat-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ' +
-                    (on ? 'bg-eh-red text-white' : 'bg-eh-card border border-eh-border text-eh-muted hover:text-eh-text hover:border-eh-border-l');
-            });
+            buildPlayCategoryFilters();
             filterPlayGames();
         }
 
@@ -1806,7 +1885,10 @@ pauiLoadAccess();
 
         function openPlayGame(index) {
             const filtered = getFilteredPlayGames();
-            const g = filtered[index];
+            openPlayGameItem(filtered[index]);
+        }
+
+        function openPlayGameItem(g) {
             if (!g) return;
 
             const overlay = document.getElementById('iframeOverlay');
@@ -2683,3 +2765,4 @@ window.PAUI_THEME_COLOR = '#FF0000';
 </body>
 
 </html>
+    
