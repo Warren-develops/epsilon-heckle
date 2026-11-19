@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epsilon Heckle</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        eh: {
+                            bg: '#0a0a0a', surface: '#101010', card: '#151515',
+                            'card-h': '#1a1a1a', border: '#1f1f1f', 'border-l': '#2a2a2a',
+                            red: '#dc2626', 'red-l': '#ef4444', 'red-d': '#991b1b',
+                            text: '#ededed', muted: '#777', dim: '#444',
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #ededed;
+            margin: 0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #dc2626;
+        }
+
+        .auth-bg {
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .auth-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse at 25% 30%, rgba(220, 38, 38, 0.1) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 70%, rgba(220, 38, 38, 0.06) 0%, transparent 55%);
+            animation: authPulse 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes authPulse {
+            0% {
+                opacity: 0.7;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #151515 25%, #1c1c1c 50%, #151515 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+
+        .fade-up {
+            animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        .game-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.12), 0 12px 32px rgba(0, 0, 0, 0.4);
+            border-color: rgba(220, 38, 38, 0.35) !important;
+        }
+
+        .game-card:hover .card-thumb {
+            transform: scale(1.05);
+        }
+
+        .card-thumb {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .play-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .play-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 25px rgba(220, 38, 38, 0.15), 0 12px 32px rgba(0, 0, 0, 0.4);
+            border-color: rgba(220, 38, 38, 0.4) !important;
+        }
+
+        .profile-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .profile-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.1), 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .video-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.12), 0 12px 32px rgba(0, 0, 0, 0.4);
+            border-color: rgba(220, 38, 38, 0.35) !important;
+        }
+
+        .video-card:hover .vid-thumb {
+            transform: scale(1.04);
+        }
+
+        .vid-thumb {
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-card:hover .play-icon {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .play-icon {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.7);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-item {
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: #dc2626;
+            border-radius: 0 3px 3px 0;
+            transition: height 0.25s;
+        }
+
+        .nav-item.active::before {
+            height: 60%;
+        }
+
+        .nav-item.active {
+            background: rgba(220, 38, 38, 0.1);
+            color: #ef4444;
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .red-btn {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transition: all 0.25s;
+        }
+
+        .red-btn:hover {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35);
+        }
+
+        .red-btn:active {
+            transform: translateY(0);
+        }
+
+        .outline-btn {
+            border: 1.5px solid #2a2a2a;
+            transition: all 0.25s;
+        }
+
+        .outline-btn:hover {
+            border-color: #dc2626;
+            color: #ef4444;
+            background: rgba(220, 38, 38, 0.05);
+        }
+
+        .outline-btn.following {
+            border-color: #22c55e;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .outline-btn.following:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .news-card {
+            border-left: 3px solid #dc2626;
+            transition: all 0.25s;
+        }
+
+        .news-card:hover {
+            background: #1a1a1a;
+            transform: translateX(4px);
+        }
+
+        .toast {
+            transform: translateY(120%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        #iframeOverlay,
+        #videoOverlay {
+            transition: opacity 0.3s;
+        }
+
+        #minimizedGame,
+        #minimizedVideo {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #101010;
+            border: 1px solid #1f1f1f;
+            border-radius: 1.25rem;
+            max-width: 540px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: fadeUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-box::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .modal-box::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 2px;
+        }
+
+        .stat-pill {
+            background: #151515;
+            border: 1px solid #1f1f1f;
+        }
+
+        .theme-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .sidebar-open {
+            transform: translateX(0) !important;
+        }
+
+        @media(max-width:768px) {
+            #sidebar {
+                transform: translateX(-100%);
+            }
+
+            #mainContent {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+        }
+
+        .yt-thumb {
+            position: relative;
+            padding-bottom: 56.25%;
+            overflow: hidden;
+            background: #111;
+        }
+
+        .yt-thumb img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .yt-duration {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen overflow-x-hidden">
+
+    <!-- ===== AUTH PAGE ===== -->
+    <div id="authPage" class="auth-bg fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div class="relative z-10 w-full max-w-md">
+            <div class="text-center mb-8 fade-up">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight">
+                    <span class="text-eh-red">ε</span><span class="text-eh-text">PSILON</span><br>
+                    <span class="text-eh-text">HECK</span><span class="text-eh-red">LE</span>
+                </h1>
+                <p class="text-eh-muted mt-2 text-sm tracking-wide">YOUR GAMING HUB</p>
+            </div>
+            <div class="bg-eh-surface border border-eh-border rounded-2xl p-6 md:p-8 fade-up"
+                style="animation-delay:0.1s">
+                <div class="flex bg-eh-bg rounded-xl p-1 mb-6">
+                    <button onclick="toggleAuthMode('login')" id="loginTab"
+                        class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all bg-eh-red text-white">Sign
+                        In</button>
+                    <button onclick="toggleAuthMode('signup')" id="signupTab"
+                        class="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all text-eh-muted hover:text-eh-text">Sign
+                        Up</button>
+                </div>
+                <p id="authGateMessage" class="hidden text-sm text-eh-muted text-center mb-4">Sign in to access the Library, Videos, News, and Community. Play Games is available without an account.</p>
+                <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-eh-muted mb-1.5 uppercase tracking-wider">Email</label>
+                        <input type="email" id="authEmail" required placeholder="you@example.com"
+                            class="w-full bg-eh-bg border border-eh-border rounded-xl px-4 py-3 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red focus:ring-1 focus:ring-eh-red/30 transition-all">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-semibold text-eh-muted mb-1.5 uppercase tracking-wider">Password</label>
+                        <input type="password" id="authPassword" required placeholder="••••••••" minlength="6"
+                            class="w-full bg-eh-bg border border-eh-border rounded-xl px-4 py-3 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red focus:ring-1 focus:ring-eh-red/30 transition-all">
+                    </div>
+                    <div id="authError" class="text-red-400 text-xs hidden"></div>
+                    <button type="submit" id="authSubmitBtn"
+                        class="red-btn w-full py-3 rounded-xl text-white font-bold text-sm tracking-wide">
+                        <span id="authBtnText">Sign In</span>
+                        <span id="authBtnLoader" class="hidden"><i data-lucide="loader-2"
+                                class="w-4 h-4 animate-spin inline-block"></i></span>
+                    </button>
+                </form>
+                <button id="continueGuestBtn" onclick="continueAsGuest()"
+                    class="hidden w-full mt-3 py-2.5 rounded-xl text-sm font-semibold text-eh-muted hover:text-eh-text transition-colors">Continue as guest</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="dashboardPage" class="hidden">
+        <aside id="sidebar"
+            class="fixed left-0 top-0 h-screen w-[260px] bg-eh-surface border-r border-eh-border z-[100] flex flex-col transition-transform duration-300">
+            <div class="p-5 pb-4">
+                <h2 class="text-lg font-black tracking-tight cursor-default">
+                    <span class="text-eh-red">ε</span><span class="text-eh-text">PSILON</span>
+                    <span class="text-eh-dim font-semibold ml-1">HECKLE</span>
+                </h2>
+            </div>
+            <div class="h-px bg-eh-border mx-4"></div>
+            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+                <button onclick="navigateTo('library')" data-nav="library"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="library" class="w-[18px] h-[18px]"></i> Library
+                </button>
+                <button onclick="navigateTo('play')" data-nav="play"
+                    class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="gamepad-2" class="w-[18px] h-[18px]"></i> Play Games
+                </button>
+                <button onclick="navigateTo('videos')" data-nav="videos"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="play-circle" class="w-[18px] h-[18px]"></i> Videos
+                </button>
+                <button onclick="navigateTo('news')" data-nav="news"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="newspaper" class="w-[18px] h-[18px]"></i> News
+                </button>
+                <button onclick="navigateTo('community')" data-nav="community"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="users" class="w-[18px] h-[18px]"></i> Community
+                </button>
+                 <button onclick="window.open('https://epsilon-heckle.vercel.app/ge/index.html', '_blank')" data-nav="studio"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-eh-muted">
+                    <i data-lucide="box" class="w-[18px] h-[18px]"></i> Studio
+                </button>
+            </nav>
+            <div class="h-px bg-eh-border mx-4"></div>
+            <div class="p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-full bg-eh-red/20 flex items-center justify-center text-eh-red font-bold text-sm"
+                        id="userAvatar">?</div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-eh-text truncate" id="userEmail">...</p>
+                        <p class="text-xs text-eh-dim">Gamer</p>
+                    </div>
+                </div>
+                <button id="signInBtn" onclick="openAuthGate()"
+                    class="hidden w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-eh-muted hover:text-eh-red hover:bg-red-400/5 transition-all">
+                    <i data-lucide="log-in" class="w-3.5 h-3.5"></i> Sign In
+                </button>
+                <button id="signOutBtn" onclick="handleLogout()"
+                    class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-eh-muted hover:text-red-400 hover:bg-red-400/5 transition-all">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-[99] hidden" onclick="toggleSidebar()"></div>
+
+        <button id="menuToggle" onclick="toggleSidebar()"
+            class="fixed top-4 left-4 z-[101] md:hidden w-10 h-10 rounded-xl bg-eh-surface border border-eh-border flex items-center justify-center text-eh-muted hover:text-eh-red transition-colors">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
+        <main id="mainContent" class="md:ml-[260px] min-h-screen p-5 md:p-8">
+
+            <!-- ===== LIBRARY ===== -->
+            <section id="librarySection" class="page-section">
+                <div class="mb-6">
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tight">Game <span
+                            class="text-eh-red">Library</span></h1>
+                    <p class="text-eh-muted text-sm mt-1">Browse and download free games</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div class="relative flex-1">
+                        <i data-lucide="search"
+                            class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
+                        <input type="text" id="librarySearch" oninput="filterLibrary()" placeholder="Search games..."
+                            class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
+                    </div>
+                    <div id="genreFilters" class="flex gap-2 flex-wrap"></div>
+                </div>
+                <div id="libraryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+                <div id="libraryEmpty" class="hidden text-center py-20">
+                    <i data-lucide="search-x" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+                    <p class="text-eh-muted">No games found</p>
+                </div>
+            </section>
+
+            <!-- ===== PLAY GAMES ===== -->
+                      <section id="playSection" class="page-section">
+    <div class="mb-6">
+        <h1 class="text-2xl md:text-3xl font-black tracking-tight">Play <span class="text-eh-red">Games</span></h1>
+        <p class="text-eh-muted text-sm mt-1">Jump right in — no download needed</p>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+        <div class="relative flex-1">
+            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
+            <input type="text" id="playSearch" oninput="filterPlayGames()" placeholder="Search games..."
+                class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
+        </div>
+    </div>
+    <div id="playCategoryFilters" class="flex gap-2 flex-wrap mb-5"></div>
+    <div id="playGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+    <div id="playEmpty" class="hidden text-center py-20">
+        <i data-lucide="search-x" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+        <p class="text-eh-muted">No games found</p>
+    </div>
+    <div id="playLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden">
+            <div class="skeleton h-40"></div>
+            <div class="p-4">
+                <div class="skeleton h-4 w-3/4 mb-2"></div>
+                <div class="skeleton h-3 w-1/2 mb-3"></div>
+                <div class="skeleton h-8 w-24 rounded-lg"></div>
+            </div>
+        </div>
+        <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden hidden sm:block">
+            <div class="skeleton h-40"></div>
+            <div class="p-4">
+                <div class="skeleton h-4 w-2/3 mb-2"></div>
+                <div class="skeleton h-3 w-2/5 mb-3"></div>
+                <div class="skeleton h-8 w-24 rounded-lg"></div>
+            </div>
+        </div>
+        <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden hidden lg:block">
+            <div class="skeleton h-40"></div>
+            <div class="p-4">
+                <div class="skeleton h-4 w-4/5 mb-2"></div>
+                <div class="skeleton h-3 w-1/3 mb-3"></div>
+                <div class="skeleton h-8 w-24 rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+</section>
+            <!-- ===== VIDEOS ===== -->
+            <section id="videosSection" class="page-section hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black tracking-tight">Gaming <span
+                                class="text-eh-red">Videos</span></h1>
+                        <p class="text-eh-muted text-sm mt-1">Watch the best gaming content from top creators</p>
+                    </div>
+                    <span id="videoCount" class="text-xs text-eh-dim font-medium"></span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                    <div class="relative flex-1">
+                        <i data-lucide="search"
+                            class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
+                        <input type="text" id="videoSearch" oninput="filterVideos()"
+                            placeholder="Search videos, YouTubers..."
+                            class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="filter" class="w-4 h-4 text-eh-dim flex-shrink-0"></i>
+                        <select id="videoYoutuberFilter" onchange="filterVideos()"
+                            class="bg-eh-surface border border-eh-border rounded-xl px-3 py-2.5 text-sm text-eh-text focus:outline-none focus:border-eh-red transition-colors cursor-pointer">
+                            <option value="All">All YouTubers</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="videoGameFilters" class="flex gap-2 flex-wrap mb-6"></div>
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                <div id="videoEmpty" class="hidden text-center py-20">
+                    <i data-lucide="video-off" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+                    <p class="text-eh-muted">No videos found</p>
+                </div>
+                <div id="videoLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden">
+                        <div class="skeleton h-44"></div>
+                        <div class="p-4">
+                            <div class="skeleton h-4 w-3/4 mb-2"></div>
+                            <div class="skeleton h-3 w-1/2 mb-3"></div>
+                            <div class="skeleton h-3 w-full mb-1.5"></div>
+                            <div class="skeleton h-3 w-5/6"></div>
+                        </div>
+                    </div>
+                    <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden hidden sm:block">
+                        <div class="skeleton h-44"></div>
+                        <div class="p-4">
+                            <div class="skeleton h-4 w-2/3 mb-2"></div>
+                            <div class="skeleton h-3 w-2/5 mb-3"></div>
+                            <div class="skeleton h-3 w-full mb-1.5"></div>
+                            <div class="skeleton h-3 w-4/5"></div>
+                        </div>
+                    </div>
+                    <div class="bg-eh-card border border-eh-border rounded-2xl overflow-hidden hidden lg:block">
+                        <div class="skeleton h-44"></div>
+                        <div class="p-4">
+                            <div class="skeleton h-4 w-4/5 mb-2"></div>
+                            <div class="skeleton h-3 w-1/3 mb-3"></div>
+                            <div class="skeleton h-3 w-full mb-1.5"></div>
+                            <div class="skeleton h-3 w-3/4"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== NEWS ===== -->
+            <section id="newsSection" class="page-section hidden">
+                <div class="mb-6">
+                    <h1 class="text-2xl md:text-3xl font-black tracking-tight">Gaming <span
+                            class="text-eh-red">News</span></h1>
+                    <p class="text-eh-muted text-sm mt-1">Stay updated with the community</p>
+                </div>
+                <div id="newsFormWrap" class="bg-eh-surface border border-eh-border rounded-2xl p-5 mb-6">
+                    <h3 class="text-sm font-bold text-eh-text mb-4 flex items-center gap-2"><i data-lucide="pen-square"
+                            class="w-4 h-4 text-eh-red"></i> Post News</h3>
+                    <input type="text" id="newsTitle" placeholder="Title" maxlength="120"
+                        class="w-full bg-eh-bg border border-eh-border rounded-xl px-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors mb-3">
+                    <textarea id="newsDesc" placeholder="What's happening?" rows="3" maxlength="500"
+                        class="w-full bg-eh-bg border border-eh-border rounded-xl px-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors resize-none mb-3"></textarea>
+                    <button onclick="postNews()" id="newsPostBtn"
+                        class="red-btn px-5 py-2.5 rounded-xl text-white text-sm font-semibold">Publish</button>
+                </div>
+                <div id="newsFeed" class="space-y-3"></div>
+                <div id="newsEmpty" class="hidden text-center py-16">
+                    <i data-lucide="newspaper" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+                    <p class="text-eh-muted">No news yet — be the first to post!</p>
+                </div>
+                <div id="newsError" class="hidden text-center py-16">
+                    <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+                    <p class="text-eh-muted text-sm">Could not load news. The <code class="text-eh-red">news</code>
+                        table may not exist yet.</p>
+                </div>
+            </section>
+
+            <!-- ===== COMMUNITY ===== -->
+            <section id="communitySection" class="page-section hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black tracking-tight">Commu<span
+                                class="text-eh-red">nity</span></h1>
+                        <p class="text-eh-muted text-sm mt-1">Find gamers, follow friends, build your squad</p>
+                    </div>
+                    <span id="memberCount" class="text-xs text-eh-dim font-medium"></span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div class="relative flex-1">
+                        <i data-lucide="search"
+                            class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-eh-dim"></i>
+                        <input type="text" id="communitySearch" oninput="filterCommunity()"
+                            placeholder="Search by username, name, or location..."
+                            class="w-full bg-eh-surface border border-eh-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-eh-text placeholder-eh-dim focus:outline-none focus:border-eh-red transition-colors">
+                    </div>
+                    <select id="communitySort" onchange="filterCommunity()"
+                        class="bg-eh-surface border border-eh-border rounded-xl px-4 py-2.5 text-sm text-eh-text focus:outline-none focus:border-eh-red transition-colors cursor-pointer">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                        <option value="most-followers">Most Followed</option>
+                        <option value="most-tokens">Most Tokens</option>
+                        <option value="username-az">Username A-Z</option>
+                    </select>
+                </div>
+                <div id="communityGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                </div>
+                <div id="communityEmpty" class="hidden text-center py-20">
+                    <i data-lucide="user-x" class="w-12 h-12 text-eh-dim mx-auto mb-3"></i>
+                    <p class="text-eh-muted">No profiles found</p>
+                </div>
+                <div id="communityError" class="hidden text-center py-20">
+                    <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+                    <p class="text-eh-muted text-sm">Could not load profiles. Check RLS policies on the <code
+                            class="text-eh-red">profiles</code> table.</p>
+                </div>
+                <div id="communityLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div class="bg-eh-card border border-eh-border rounded-2xl p-5">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-14 h-14 rounded-full skeleton"></div>
+                            <div class="flex-1">
+                                <div class="skeleton h-4 w-24 mb-2"></div>
+                                <div class="skeleton h-3 w-16"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton h-3 w-full mb-2"></div>
+                        <div class="skeleton h-3 w-3/4 mb-4"></div>
+                        <div class="flex gap-2">
+                            <div class="skeleton h-8 w-20 rounded-lg"></div>
+                        </div>
+                    </div>
+                    <div class="bg-eh-card border border-eh-border rounded-2xl p-5 hidden sm:block">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-14 h-14 rounded-full skeleton"></div>
+                            <div class="flex-1">
+                                <div class="skeleton h-4 w-28 mb-2"></div>
+                                <div class="skeleton h-3 w-20"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton h-3 w-full mb-2"></div>
+                        <div class="skeleton h-3 w-2/3 mb-4"></div>
+                        <div class="flex gap-2">
+                            <div class="skeleton h-8 w-20 rounded-lg"></div>
+                        </div>
+                    </div>
+                    <div class="bg-eh-card border border-eh-border rounded-2xl p-5 hidden lg:block">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-14 h-14 rounded-full skeleton"></div>
+                            <div class="flex-1">
+                                <div class="skeleton h-4 w-20 mb-2"></div>
+                                <div class="skeleton h-3 w-14"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton h-3 w-full mb-2"></div>
+                        <div class="skeleton h-3 w-4/5 mb-4"></div>
+                        <div class="flex gap-2">
+                            <div class="skeleton h-8 w-20 rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===== PROFILE MODAL ===== -->
+    <div id="profileModal" class="modal-overlay" onclick="if(event.target===this)closeProfileModal()">
+        <div class="modal-box">
+            <div id="profileModalBanner" class="h-28 rounded-t-[1.25rem] relative">
+                <button onclick="closeProfileModal()"
+                    class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="px-6 pb-6">
+                <div class="flex items-end gap-4 -mt-10 mb-4">
+                    <div id="modalAvatar"
+                        class="w-20 h-20 rounded-2xl border-4 border-eh-surface bg-eh-card flex items-center justify-center text-2xl font-black flex-shrink-0 overflow-hidden">
+                    </div>
+                    <div class="min-w-0 flex-1 pb-1">
+                        <h2 id="modalDisplayName" class="text-lg font-bold text-eh-text truncate"></h2>
+                        <p id="modalUsername" class="text-sm text-eh-muted"></p>
+                    </div>
+                </div>
+                <div id="modalBio" class="text-sm text-eh-muted leading-relaxed mb-4"></div>
+                <div class="grid grid-cols-3 gap-3 mb-5">
+                    <div class="stat-pill rounded-xl p-3 text-center">
+                        <p id="modalFollowers" class="text-lg font-bold text-eh-text">0</p>
+                        <p class="text-[10px] text-eh-dim font-semibold uppercase tracking-wider">Followers</p>
+                    </div>
+                    <div class="stat-pill rounded-xl p-3 text-center">
+                        <p id="modalFollowing" class="text-lg font-bold text-eh-text">0</p>
+                        <p class="text-[10px] text-eh-dim font-semibold uppercase tracking-wider">Following</p>
+                    </div>
+                    <div class="stat-pill rounded-xl p-3 text-center">
+                        <p id="modalTokens" class="text-lg font-bold text-eh-red">0</p>
+                        <p class="text-[10px] text-eh-dim font-semibold uppercase tracking-wider">Tokens</p>
+                    </div>
+                </div>
+                <div id="modalDetails" class="space-y-2.5 mb-5"></div>
+                <div id="modalCars" class="hidden mb-5">
+                    <h4 class="text-xs font-bold text-eh-dim uppercase tracking-wider mb-2">Garage Cars</h4>
+                    <div id="modalCarsList" class="flex flex-wrap gap-2"></div>
+                </div>
+                <button id="modalFollowBtn" onclick="toggleFollowFromModal()"
+                    class="red-btn w-full py-3 rounded-xl text-white text-sm font-bold tracking-wide"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GAME IFRAME OVERLAY ===== -->
+    <div id="iframeOverlay" class="fixed inset-0 z-[500] bg-eh-bg hidden flex-col">
+        <div class="h-12 bg-eh-surface border-b border-eh-border flex items-center justify-between px-4 flex-shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-2 h-2 rounded-full bg-eh-red animate-pulse flex-shrink-0"></div>
+                <span id="iframeTitle" class="text-sm font-semibold text-eh-text truncate">Game</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="minimizeGame()"
+                    class="w-8 h-8 rounded-lg bg-eh-bg border border-eh-border flex items-center justify-center text-eh-muted hover:text-eh-red hover:border-eh-red transition-all"
+                    title="Minimize"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                <button onclick="closeGame()"
+                    class="w-8 h-8 rounded-lg bg-eh-bg border border-eh-border flex items-center justify-center text-eh-muted hover:text-red-400 hover:border-red-400 transition-all"
+                    title="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+        <iframe id="gameIframe" class="flex-1 w-full border-0" allow="autoplay; fullscreen; gamepad"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+    </div>
+
+    <!-- ===== VIDEO OVERLAY ===== -->
+    <div id="videoOverlay" class="fixed inset-0 z-[500] bg-eh-bg hidden flex-col">
+        <div class="h-14 bg-eh-surface border-b border-eh-border flex items-center justify-between px-4 flex-shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></div>
+                <div class="min-w-0">
+                    <p id="videoOverlayTitle" class="text-sm font-semibold text-eh-text truncate"></p>
+                    <p id="videoOverlayYoutuber" class="text-[11px] text-eh-dim truncate"></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button onclick="minimizeVideo()"
+                    class="w-9 h-9 rounded-lg bg-eh-bg border border-eh-border flex items-center justify-center text-eh-muted hover:text-eh-red hover:border-eh-red transition-all"
+                    title="Minimize"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                <button onclick="closeVideo()"
+                    class="w-9 h-9 rounded-lg bg-eh-bg border border-eh-border flex items-center justify-center text-eh-muted hover:text-red-400 hover:border-red-400 transition-all"
+                    title="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+        <div class="flex-1 flex items-center justify-center bg-black p-0" id="videoContainer">
+            <iframe id="videoIframe" class="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- ===== MINIMIZED GAME ===== -->
+    <div id="minimizedGame" class="fixed bottom-5 right-5 z-[499] hidden cursor-pointer" onclick="restoreGame()">
+        <div
+            class="bg-eh-surface border border-eh-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl hover:border-eh-red/50 transition-all">
+            <div class="w-2 h-2 rounded-full bg-eh-red animate-pulse"></div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-eh-text truncate" id="minimizedTitle">Game</p>
+                <p class="text-[10px] text-eh-dim">Click to restore</p>
+            </div>
+            <button onclick="event.stopPropagation();closeGame()"
+                class="ml-2 w-6 h-6 rounded-md bg-eh-bg flex items-center justify-center text-eh-dim hover:text-red-400 transition-colors"><i
+                    data-lucide="x" class="w-3 h-3"></i></button>
+        </div>
+    </div>
+
+    <!-- ===== MINIMIZED VIDEO ===== -->
+    <div id="minimizedVideo" class="fixed bottom-5 right-5 z-[499] hidden cursor-pointer" onclick="restoreVideo()">
+        <div class="bg-eh-surface border border-eh-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-2xl hover:border-red-500/50 transition-all"
+            style="border-left: 3px solid #dc2626;">
+            <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+            <div class="min-w-0">
+                <p class="text-xs font-semibold text-eh-text truncate" id="minimizedVideoTitle">Video</p>
+                <p class="text-[10px] text-eh-dim">Click to restore</p>
+            </div>
+            <button onclick="event.stopPropagation();closeVideo()"
+                class="ml-2 w-6 h-6 rounded-md bg-eh-bg flex items-center justify-center text-eh-dim hover:text-red-400 transition-colors"><i
+                    data-lucide="x" class="w-3 h-3"></i></button>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast"
+        class="toast fixed bottom-5 left-1/2 -translate-x-1/2 z-[600] px-5 py-3 rounded-xl text-sm font-medium shadow-2xl">
+    </div>
+<style>
+    /* --- Floating Button --- */
+    #epsilon-ai-btn {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 9999;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: 1px solid rgba(220, 38, 38, 0.5);
+        background: rgba(10, 10, 10, 0.9);
+        backdrop-filter: blur(16px);
+        color: #ef4444;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 24px rgba(220, 38, 38, 0.35), 0 4px 16px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease, background 0.3s ease;
+    }
+
+    #epsilon-ai-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 36px rgba(220, 38, 38, 0.55), 0 6px 24px rgba(0, 0, 0, 0.7);
+        background: rgba(220, 38, 38, 0.2);
+    }
+
+    #epsilon-ai-btn:active {
+        transform: scale(0.95);
+    }
+
+    #epsilon-ai-btn svg {
+        width: 22px;
+        height: 22px;
+        pointer-events: none;
+    }
+
+    #epsilon-ai-btn::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 2px solid rgba(220, 38, 38, 0.4);
+        animation: ai-pulse 2.5s ease-out infinite;
+    }
+
+    @keyframes ai-pulse {
+        0% { transform: scale(1); opacity: 0.7; }
+        70% { transform: scale(1.4); opacity: 0; }
+        100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* --- Modal Overlay --- */
+    #epsilon-ai-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: flex-end;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    #epsilon-ai-overlay.open {
+        display: flex;
+        opacity: 1;
+    }
+
+    /* --- Chat Panel --- */
+    #epsilon-ai-panel {
+        width: 100%;
+        max-width: 400px;
+        max-height: 560px;
+        border-radius: 1.25rem;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(20px) saturate(150%);
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 40px rgba(220, 38, 38, 0.12);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateY(20px) scale(0.96);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #epsilon-ai-overlay.open #epsilon-ai-panel {
+        transform: translateY(0) scale(1);
+    }
+
+    /* Header */
+    .ai-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(220, 38, 38, 0.15);
+        flex-shrink: 0;
+    }
+
+    .ai-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .ai-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #dc2626;
+        box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+        animation: ai-dot-glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes ai-dot-glow {
+        from { box-shadow: 0 0 6px rgba(220, 38, 38, 0.4); }
+        to { box-shadow: 0 0 14px rgba(220, 38, 38, 0.8); }
+    }
+
+    .ai-header h3 {
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #ededed;
+    }
+
+    .ai-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        background: transparent;
+        color: #ef4444;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ai-close:hover {
+        background: rgba(220, 38, 38, 0.2);
+        color: #fff;
+    }
+
+    .ai-close svg {
+        width: 16px;
+        height: 16px;
+        pointer-events: none;
+    }
+
+    /* Messages Area */
+    .ai-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(220, 38, 38, 0.3) transparent;
+    }
+
+    .ai-messages::-webkit-scrollbar { width: 4px; }
+    .ai-messages::-webkit-scrollbar-track { background: transparent; }
+    .ai-messages::-webkit-scrollbar-thumb { background: rgba(220, 38, 38, 0.3); border-radius: 4px; }
+
+    .ai-msg {
+        max-width: 85%;
+        padding: 0.7rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        line-height: 1.55;
+        word-break: break-word;
+        animation: msg-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes msg-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ai-msg.bot {
+        background: rgba(21, 21, 21, 0.95);
+        color: #ededed;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin: 8px 0;
+        max-width: 99%;
+        display: inline-block;
+        word-wrap: break-word;
+    }
+
+    .ai-msg.bot ul, .ai-msg.bot ol { margin: 5px 0; padding-left: 20px; }
+    .ai-msg.bot p { margin: 4px 0; }
+    .ai-msg.bot h1, .ai-msg.bot h2, .ai-msg.bot h3 { margin: 6px 0; font-size: 1.1em; font-weight: bold; }
+    .ai-msg.bot strong { color: #ef4444; }
+    .ai-msg.bot code { background: rgba(220, 38, 38, 0.1); padding: 1px 5px; border-radius: 4px; font-size: 0.82em; color: #fca5a5; }
+    .ai-msg.bot a { color: #ef4444; text-decoration: underline; }
+
+    .ai-msg.user {
+        align-self: flex-end;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+        border-bottom-right-radius: 0.3rem;
+    }
+
+    .ai-msg.typing span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #ef4444;
+        margin: 0 2px;
+        animation: typing-bounce 1.2s ease-in-out infinite;
+    }
+
+    .ai-msg.typing span:nth-child(2) { animation-delay: 0.15s; }
+    .ai-msg.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes typing-bounce {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* Input Area */
+    .ai-input-area {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.85rem 1.25rem;
+        border-top: 1px solid rgba(220, 38, 38, 0.15);
+        flex-shrink: 0;
+    }
+
+    .ai-input {
+        flex: 1;
+        background: rgba(220, 38, 38, 0.06);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        border-radius: 0.75rem;
+        padding: 0.6rem 1rem;
+        color: #ededed;
+        font-size: 0.85rem;
+        font-family: 'Inter', sans-serif;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .ai-input::placeholder { color: rgba(239, 68, 68, 0.35); }
+
+    .ai-input:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 12px rgba(220, 38, 38, 0.25);
+    }
+
+    .ai-send {
+        width: 38px;
+        height: 38px;
+        border-radius: 0.75rem;
+        border: none;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.15s;
+        flex-shrink: 0;
+    }
+
+    .ai-send:hover { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .ai-send:active { transform: scale(0.92); }
+    .ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ai-send svg {
+        width: 16px;
+        height: 16px;
+        pointer-events: none;
+    }
+
+    /* Suggestion chips */
+    .ai-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding: 0 1.25rem 0.75rem;
+    }
+
+    .ai-chip {
+        background: rgba(220, 38, 38, 0.08);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        border-radius: 999px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
+        color: #fca5a5;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .ai-chip:hover {
+        background: rgba(220, 38, 38, 0.2);
+        border-color: rgba(220, 38, 38, 0.5);
+        color: #fff;
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+        #epsilon-ai-overlay {
+            padding: 0.75rem;
+            align-items: flex-end;
+        }
+        #epsilon-ai-panel {
+            max-height: 75vh;
+            border-radius: 1.25rem 1.25rem 0 0;
+        }
+    }
+</style>
+
+<!-- Floating Button -->
+<button id="epsilon-ai-btn" aria-label="Open Heckle AI Assistant">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"></path>
+    </svg>
+</button>
+
+<!-- Chat Modal -->
+<div id="epsilon-ai-overlay">
+    <div id="epsilon-ai-panel">
+        <div class="ai-header">
+            <div class="ai-header-left">
+                <div class="ai-dot"></div>
+                <h3>Heckle AI</h3>
+            </div>
+            <button class="ai-close" id="epsilon-ai-close" aria-label="Close chat">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="ai-messages" id="ai-messages"></div>
+        <div class="ai-suggestions" id="ai-suggestions">
+            <button class="ai-chip" data-q="What games can I play here?">🎮 Play games</button>
+            <button class="ai-chip" data-q="Recommend a good free game">💡 Recommendations</button>
+            <button class="ai-chip" data-q="What is Epsilon Heckle?">🔵 About Heckle</button>
+            <button class="ai-chip" data-q="Tell me about the Epsilon ecosystem">🌐 Epsilon ecosystem</button>
+        </div>
+        <div class="ai-input-area">
+            <input type="text" class="ai-input" id="ai-input" placeholder="Ask about games, tips, Heckle..." autocomplete="off">
+            <button class="ai-send" id="ai-send" aria-label="Send message">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        /* ====== CONFIGURATION ====== */
+        const systemMessage = `You are **Heckle AI**, the built-in assistant inside **Epsilon Heckle** — the gaming hub of the Epsilon ecosystem. Your theme is red and black. You are helpful, concise, friendly, and you LOVE talking about games.
+
+**Where you live:**
+You are embedded inside Epsilon Heckle, which has:
+- A **Game Library** — browse and discover free games (Overwatch, Dauntless, World of Tanks, Genshin Impact, Valorant, Warframe, Apex Legends, Fortnite, MultiVersus, League of Legends, Thetan Arena, Lost Ark, etc.)
+- **Play Games** — instant-play browser games like 2048, Dino Runner, Tic Tac Toe, Sudoku, Snake, Minesweeper, Cut the Rope, Crossy Road
+- **Videos** — curated gaming videos from YouTubers like Flankspeed, SypherPK, ProdigyAces, Tectone, Mogamu, Skill4ltu, SaintOne, etc.
+- **News** — community-posted gaming news
+- **Community** — gamer profiles, follow system, tokens
+
+**What you can talk about:**
+- Game recommendations based on genre/mood (shooters, RPGs, battle royales, MOBAs, puzzle games, etc.)
+- Tips, strategies, and meta info for popular free games
+- Gaming news, updates, patch notes (use your general knowledge)
+- Esports talk — tournaments, teams, players
+- Game comparisons ("Valorant vs CS2?", "Genshin vs Honkai Star Rail?")
+- Helping users navigate Heckle's features (library, play, videos, community)
+- Casual gamer chat — what to play, best free games, hidden gems
+
+**Epsilon Ecosystem** (you know about the broader family):
+- Epsilon AI (image gen, coding, chat) | Pink theme
+- Epsilon Azure (BMS, B2B marketplace) | Blue theme
+- **Epsilon Heckle (YOU ARE HERE — gaming library + game engine for kids) | Red theme**
+- Epsilon Editz (editing/design tools) | Yellow theme
+- Epsilon Motor (automobile community) | Grey theme
+- Epsilon Neote (programming language, JS framework) | Purple theme
+- Epsilon Sport (fitness tracker, sports community) | Orange theme
+- Epsilon Panel (web domain agency) | Purple theme
+- Epsilon Basic (3D/2D design tools library) | Light gray theme
+- Epsilon Learn (free learning platform) | Green theme
+
+**Client Projects:** NTK Services (movers/logistics), Zerah (stationary/clothing)
+
+**Epsilon Team (ages 12-14):**
+- Warren Adrian (14) — Owner, founded Epsilon June 6 2024 when he was 12
+- Glenn Njoroge — Epsilon Panel
+- Dylan Gikundi — Apple apps
+- Ethan Gitimu — Android apps + Epsilon Learn
+- Philip Hinga — Epsilon Sport
+- Victor Mwaura — In training
+- Jaydon Kuria — **Epsilon Heckle**
+- Jayden Mwangi — Epsilon Azure
+- Casey Mwenda — Epsilon Editz
+- Jabali Mwaniki — Epsilon Basic
+
+**Rules:**
+- Keep answers short and punchy — gamers don't want walls of text
+- Use gaming language naturally (meta, OP, nerfed, buffed, clutch, rank up, grind, etc.)
+- Always use Markdown: **bold** for game names, lists for multiple items, headers for structure
+- Give specific recommendations from Heckle's library when possible
+- If someone asks about a game not in the library, still help — just mention it's not on Heckle (yet 😉)
+- Never make up features that don't exist on Heckle
+- Be hyped about gaming but stay helpful`;
+
+        /* ====== DOM REFS ====== */
+        const btn = document.getElementById('epsilon-ai-btn');
+        const overlay = document.getElementById('epsilon-ai-overlay');
+        const closeBtn = document.getElementById('epsilon-ai-close');
+        const messages = document.getElementById('ai-messages');
+        const input = document.getElementById('ai-input');
+        const sendBtn = document.getElementById('ai-send');
+        const suggestions = document.getElementById('ai-suggestions');
+
+        let conversationHistory = [
+            { role: 'system', content: systemMessage }
+        ];
+        let isWaiting = false;
+
+        /* ====== OPEN / CLOSE ====== */
+        function openChat() {
+            overlay.classList.add('open');
+            if (conversationHistory.length === 1) {
+                addBotMessage("Yo! I'm **Heckle AI** — your gaming sidekick right inside Epsilon Heckle 🔴\n\nAsk me about games, tips, what to play, or anything about the Epsilon ecosystem. Let's go! 🎮");
+            }
+            setTimeout(() => input.focus(), 300);
+        }
+
+        function closeChat() {
+            overlay.classList.remove('open');
+        }
+
+        btn.addEventListener('click', openChat);
+        closeBtn.addEventListener('click', closeChat);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeChat();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('open')) closeChat();
+        });
+
+        /* ====== SUGGESTION CHIPS ====== */
+        suggestions.addEventListener('click', (e) => {
+            const chip = e.target.closest('.ai-chip');
+            if (!chip || isWaiting) return;
+            const query = chip.getAttribute('data-q');
+            if (query) {
+                input.value = query;
+                sendMessage();
+            }
+        });
+
+        function hideSuggestions() {
+            suggestions.style.display = 'none';
+        }
+
+        /* ====== MESSAGE RENDERING ====== */
+        function addBotMessage(markdownText) {
+            const div = document.createElement('div');
+            div.className = 'ai-msg bot';
+
+            if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+                div.innerHTML = marked.parse(markdownText);
+            } else {
+                div.textContent = markdownText;
+            }
+
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'ai-msg user';
+            div.textContent = text;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .ai-msg.bot ul, .ai-msg.bot ol { margin: 5px 0; padding-left: 20px; }
+            .ai-msg.bot p { margin: 4px 0; }
+            .ai-msg.bot h1, .ai-msg.bot h2, .ai-msg.bot h3 { margin: 6px 0; font-size: 1.1em; }
+        `;
+        document.head.appendChild(style);
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'ai-msg bot typing';
+            div.id = 'ai-typing';
+            div.innerHTML = '<span></span><span></span><span></span>';
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('ai-typing');
+            if (el) el.remove();
+        }
+
+        /* ====== SEND MESSAGE ====== */
+        async function sendMessage() {
+            const text = input.value.trim();
+            if (!text || isWaiting) return;
+
+            isWaiting = true;
+            sendBtn.disabled = true;
+            input.value = '';
+            hideSuggestions();
+
+            addUserMessage(text);
+            conversationHistory.push({ role: 'user', content: text });
+            showTyping();
+
+            try {
+                const promptContext = conversationHistory
+                    .map(msg => {
+                        if (msg.role === 'system') return `System instructions: ${msg.content}`;
+                        return `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`;
+                    })
+                    .join('\n');
+
+                const encodedPrompt = encodeURIComponent(promptContext + "\nAssistant:");
+
+                const res = await fetch(`https://text.pollinations.ai/${encodedPrompt}?model=openai&cache=false`);
+
+                if (!res.ok) throw new Error(`API returned ${res.status}`);
+
+                const replyText = await res.text();
+                removeTyping();
+                addBotMessage(replyText);
+                conversationHistory.push({ role: 'assistant', content: replyText });
+
+            } catch (err) {
+                removeTyping();
+                addBotMessage("Something went wrong — try again in a sec. 🔄");
+                console.error('Heckle AI error:', err);
+            }
+
+            isWaiting = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    })();
+</script>
+    <script>
+        // ===== SUPABASE =====
+        const { createClient } = supabase;
+        const supabaseClient = createClient('https://dqxtaoryepvzwgpfcuxs.supabase.co',
+         'sb_publishable_NsJz5AAUd7DX0MuCXUndog_bQMFY-LW', {
+            auth: { persistSession: true, storageKey: 'epsilon-heckle-auth' }
+        });
+
+        // ===== THEME COLORS =====
+        const THEME_COLORS = { purple: '#a855f7', pink: '#ec4899', red: '#ef4444', orange: '#f97316', yellow: '#eab308', blue: '#3b82f6', green: '#22c55e', white: '#e5e7eb' };
+
+// ============================================
+// PAUI CONFIG — Epsilon Heckle (hck)
+// ============================================
+const PAUI_CONFIG = {
+    ssn: 'hck',
+    lsn: 'Epsilon Heckle',
+    pnb: ['studio'],
+    npnb: ['library', 'play', 'videos', 'news', 'community'],
+};
+// ============================================
+// PAUI CORE — don't touch below
+// ============================================
+
+// Resolve a nav element by id first, then by data-page attribute
+function pauiResolveNavEl(value) {
+    const byId = document.getElementById(value);
+    if (byId) return byId;
+
+    const byDataPage = document.querySelector(`[data-page="${value}"]`);
+    if (byDataPage) return byDataPage;
+
+    console.warn(`PAUI: nav element "${value}" not found by id or data-page`);
+    return null;
+}
+
+// Show nav buttons (accepts array of ids or data-page values)
+function showNavBtn(btns) {
+    btns.forEach(val => {
+        const el = pauiResolveNavEl(val);
+        if (el) el.style.display = '';
+    });
+}
+
+// Hide nav buttons (accepts array of ids or data-page values)
+function hideNavBtn(btns) {
+    btns.forEach(val => {
+        const el = pauiResolveNavEl(val);
+        if (el) el.style.display = 'none';
+    });
+}
+
+// Load premium status from Supabase and toggle nav visibility
+async function pauiLoadAccess() {
+    // Get current logged-in user
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+    if (!user || authError) {
+        // Not logged in — hide premium, show non-premium
+        hideNavBtn(PAUI_CONFIG.pnb);
+        showNavBtn(PAUI_CONFIG.npnb);
+        return false;
+    }
+
+    // Query profiles table for the paui_<ssn> column
+    const columnName = `paui_${PAUI_CONFIG.ssn}`;
+
+    const { data, error } = await supabaseClient
+        .from('profiles')
+        .select(columnName)
+        .eq('id', user.id)
+        .single();
+
+    if (error || !data) {
+        console.error('PAUI: error fetching premium status', error);
+        hideNavBtn(PAUI_CONFIG.pnb);
+        showNavBtn(PAUI_CONFIG.npnb);
+        return false;
+    }
+
+    const isPremium = data[columnName];
+
+    if (isPremium === true) {
+        // Premium user — show premium btns AND non-premium btns
+        showNavBtn(PAUI_CONFIG.pnb);
+        showNavBtn(PAUI_CONFIG.npnb);
+    } else {
+        // Free user — hide premium btns, show non-premium btns
+        hideNavBtn(PAUI_CONFIG.pnb);
+        showNavBtn(PAUI_CONFIG.npnb);
+    }
+
+    return isPremium;
+}
+
+// ============================================
+// INIT — run on page load
+// ============================================
+pauiLoadAccess();
+
+        // ===== FALLBACK DATA =====
+        const FALLBACK_LIBRARY = [
+            { id: 540, title: "Overwatch", thumbnail: "https://www.freetogame.com/g/540/thumbnail.jpg", short_description: "A hero-focused first-person team shooter from Blizzard Entertainment.", game_url: "https://www.freetogame.com/open/overwatch", genre: "Shooter", platform: "PC (Windows)", publisher: "Activision Blizzard", developer: "Blizzard Entertainment", release_date: "2022-10-04", freetogame_profile_url: "https://www.freetogame.com/overwatch" },
+            { id: 1, title: "Dauntless", thumbnail: "https://www.freetogame.com/g/1/thumbnail.jpg", short_description: "A free-to-play co-op action RPG with monster hunting mechanics.", game_url: "https://www.freetogame.com/open/dauntless", genre: "RPG", platform: "PC (Windows)", publisher: "Phoenix Labs", developer: "Phoenix Labs", release_date: "2019-05-21", freetogame_profile_url: "https://www.freetogame.com/dauntless" },
+            { id: 3, title: "World of Tanks", thumbnail: "https://www.freetogame.com/g/3/thumbnail.jpg", short_description: "Team-based massively multiplayer online action game dedicated to armored warfare.", game_url: "https://www.freetogame.com/open/world-of-tanks", genre: "Shooter", platform: "PC (Windows)", publisher: "Wargaming", developer: "Wargaming", release_date: "2011-04-12", freetogame_profile_url: "https://www.freetogame.com/world-of-tanks" },
+            { id: 8, title: "Genshin Impact", thumbnail: "https://www.freetogame.com/g/8/thumbnail.jpg", short_description: "An open-world action RPG with gacha mechanics set in the fantasy world of Teyvat.", game_url: "https://www.freetogame.com/open/genshin-impact", genre: "RPG", platform: "PC (Windows)", publisher: "miHoYo", developer: "miHoYo", release_date: "2020-09-28", freetogame_profile_url: "https://www.freetogame.com/genshin-impact" },
+            { id: 15, title: "Valorant", thumbnail: "https://www.freetogame.com/g/15/thumbnail.jpg", short_description: "A 5v5 character-based tactical shooter from Riot Games.", game_url: "https://www.freetogame.com/open/valorant", genre: "Shooter", platform: "PC (Windows)", publisher: "Riot Games", developer: "Riot Games", release_date: "2020-06-02", freetogame_profile_url: "https://www.freetogame.com/valorant" },
+            { id: 17, title: "Warframe", thumbnail: "https://www.freetogame.com/g/17/thumbnail.jpg", short_description: "A cooperative free-to-play third person action game set in a sci-fi world.", game_url: "https://www.freetogame.com/open/warframe", genre: "Action", platform: "PC (Windows)", publisher: "Digital Extremes", developer: "Digital Extremes", release_date: "2013-03-25", freetogame_profile_url: "https://www.freetogame.com/warframe" },
+            { id: 20, title: "Apex Legends", thumbnail: "https://www.freetogame.com/g/20/thumbnail.jpg", short_description: "A free-to-play battle royale game where legendary characters fight for glory.", game_url: "https://www.freetogame.com/open/apex-legends", genre: "Battle Royale", platform: "PC (Windows)", publisher: "Electronic Arts", developer: "Respawn Entertainment", release_date: "2020-11-04", freetogame_profile_url: "https://www.freetogame.com/apex-legends" },
+            { id: 22, title: "Fortnite", thumbnail: "https://www.freetogame.com/g/22/thumbnail.jpg", short_description: "A battle royale game with building mechanics and constant updates.", game_url: "https://www.freetogame.com/open/fortnite", genre: "Battle Royale", platform: "PC (Windows)", publisher: "Epic Games", developer: "Epic Games", release_date: "2017-07-25", freetogame_profile_url: "https://www.freetogame.com/fortnite" },
+            { id: 452, title: "MultiVersus", thumbnail: "https://www.freetogame.com/g/452/thumbnail.jpg", short_description: "A free-to-play platform fighter with characters from various franchises.", game_url: "https://www.freetogame.com/open/multiversus", genre: "Fighting", platform: "PC (Windows)", publisher: "Warner Bros. Games", developer: "Player First Games", release_date: "2022-07-19", freetogame_profile_url: "https://www.freetogame.com/multiversus" },
+            { id: 521, title: "League of Legends", thumbnail: "https://www.freetogame.com/g/521/thumbnail.jpg", short_description: "A team-based competitive MOBA with a massive player base worldwide.", game_url: "https://www.freetogame.com/open/league-of-legends", genre: "MOBA", platform: "PC (Windows)", publisher: "Riot Games", developer: "Riot Games", release_date: "2009-10-27", freetogame_profile_url: "https://www.freetogame.com/league-of-legends" },
+            { id: 530, title: "Thetan Arena", thumbnail: "https://www.freetogame.com/g/530/thumbnail.jpg", short_description: "An esports game combined with blockchain elements featuring hero-based combat.", game_url: "https://www.freetogame.com/open/thetan-arena", genre: "Shooter", platform: "PC (Windows)", publisher: "Wolffun Game", developer: "Wolffun Game", release_date: "2021-11-26", freetogame_profile_url: "https://www.freetogame.com/thetan-arena" },
+            { id: 340, title: "Lost Ark", thumbnail: "https://www.freetogame.com/g/340/thumbnail.jpg", short_description: "An MMO-ARPG featuring fast-paced action combat and a vast world to explore.", game_url: "https://www.freetogame.com/open/lost-ark", genre: "RPG", platform: "PC (Windows)", publisher: "Amazon Games", developer: "Smilegate RPG", release_date: "2022-02-11", freetogame_profile_url: "https://www.freetogame.com/lost-ark" }
+        ];
+
+        const FALLBACK_VIDEOS = [
+            { name: "Overwatch 2 - BEST NEW HERO RANKED GAMEPLAY", youtuber: "Flankspeed", link: "https://www.youtube.com/watch?v=XZk2hJ7Wq44", desc: "Insane ranked gameplay with the newest Overwatch 2 hero. High-level positioning and ability usage breakdown.", game: "Overwatch" },
+            { name: "Fortnite Chapter 5 SEASON FINALE Event Live Reaction", youtuber: "SypherPK", link: "https://www.youtube.com/watch?v=Z3FBKk0aXbM", desc: "Watching the Fortnite Chapter 5 season finale live event with reactions and thoughts on what's next.", game: "Fortnite" },
+            { name: "I Played 100 Hours of Valorant... Here's What Happened", youtuber: "ProdigyAces", link: "https://www.youtube.com/watch?v=7bCJkFVpRvE", desc: "A journey from Iron to Diamond in 100 hours of pure Valorant grind. Tips, tricks, and full rank up montage.", game: "Valorant" },
+            { name: "Genshin Impact 5.0 - Full Story Quest Walkthrough", youtuber: "Tectone", link: "https://www.youtube.com/watch?v=LrJ3CK5wMko", desc: "Complete walkthrough of the new Natlan archon quest in Genshin Impact 5.0 with all dialogue and cutscenes.", game: "Genshin Impact" },
+            { name: "Apex Legends ALGS Championship - Grand Finals Highlights", youtuber: "Respawn", link: "https://www.youtube.com/watch?v=VfOa_0d74yY", desc: "The best moments from the Apex Legends Global Series championship grand finals. Insane clutch plays.", game: "Apex Legends" },
+            { name: "Dauntless - New Behemoth Boss Fight First Look", youtuber: "Kobu", link: "https://www.youtube.com/watch?v=HSN2sfJQaOc", desc: "First look at the latest behemoth added to Dauntless. Full fight breakdown with weapon recommendations.", game: "Dauntless" },
+            { name: "Warframe 1999 Update - Everything New Explained", youtuber: "Mogamu", link: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", desc: "Deep dive into the Warframe 1999 update including new frames, weapons, story missions, and QoL changes.", game: "Warframe" },
+            { name: "World of Tanks - How to Carry Every Game (Guide)", youtuber: "Skill4ltu", link: "https://www.youtube.com/watch?v=bP_2Ej3QDEA", desc: "Advanced guide on map awareness, position play, and damage farming to consistently carry games.", game: "World of Tanks" },
+            { name: "League of Legends - NEW CHAMPION Full Abilities Showcase", youtuber: "League of Legends", link: "https://www.youtube.com/watch?v=AzYDfMrDZyI", desc: "Official champion spotlight for the newest League of Legends champion. All abilities, skins, and lore.", game: "League of Legends" },
+            { name: "Lost Ark - Endgame Raid Guide Valtan Normal Mode", youtuber: "SaintOne", link: "https://www.youtube.com/watch?v=eGqLRsYk5Wc", desc: "Complete mech guide for Valtan normal raid in Lost Ark. All patterns explained with visual callouts.", game: "Lost Ark" },
+            { name: "Fortnite Zero Build - Tournament Finals Full VOD", youtuber: "Mongraal", link: "https://www.youtube.com/watch?v=qFZj2c9F5aU", desc: "Full VOD from the Fortnite Zero Build tournament finals. Every elimination and rotation in real time.", game: "Fortnite" },
+            { name: "Valorant - Jett Movement Guide 2024 (Advanced)", youtuber: "AverageJonas", link: "https://www.youtube.com/watch?v=wRzFLMfKMrE", desc: "Master Jett's advanced movement tech including dash combos, updraft floats, and operator jump spots.", game: "Valorant" },
+            { name: "MultiVersus - Best Combos For Every Character Tier List", youtuber: "Zylo", link: "https://www.youtube.com/watch?v=N8k4Z5mGXFo", desc: "Complete combo guide and tier list for all MultiVersus characters after the latest balance patch.", game: "MultiVersus" },
+            { name: "Overwatch 2 - Top 500 Ana Healing Guide", youtuber: "Kelley", link: "https://www.youtube.com/watch?v=JcXvYkR5xGw", desc: "How to climb to Top 500 playing Ana in Overwatch 2. Positioning, sleep dart tips, and nano boost usage.", game: "Overwatch" },
+            { name: "Genshin Impact - F2P Primogem Farming Guide 2024", youtuber: "Mtashed", link: "https://www.youtube.com/watch?v=PpXHkVzMq7s", desc: "Maximize your primogem income as a free-to-play player. Every source of free primogems explained.", game: "Genshin Impact" },
+            { name: "Apex Legends - Wraith Main Goes 30 Kills in Ranked", youtuber: "ImperialHal", link: "https://www.youtube.com/watch?v=HtR9cLaEXzI", desc: "Absolutely insane 30 kill game on Wraith in Apex Legends ranked. Full aggressive gameplay with comms.", game: "Apex Legends" }
+        ];
+
+        // ===== STATE =====
+        let authMode = 'login';
+        let libraryGames = [];
+        let videoData = [];
+        let allProfiles = [];
+        let currentGenre = 'All';
+        let currentVideoGame = 'All';
+        let currentGameUrl = '';
+        let currentGameName = '';
+        let currentVideoId = '';
+        let currentVideoName = '';
+        let currentVideoYoutuber = '';
+        let currentUser = null;
+        let viewingProfileId = null;
+
+        // ===== AUTH =====
+        function toggleAuthMode(mode) {
+            authMode = mode;
+            const lt = document.getElementById('loginTab'), st = document.getElementById('signupTab'), bt = document.getElementById('authBtnText');
+            if (mode === 'login') { lt.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all bg-eh-red text-white'; st.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all text-eh-muted hover:text-eh-text'; bt.textContent = 'Sign In'; }
+            else { st.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all bg-eh-red text-white'; lt.className = 'flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all text-eh-muted hover:text-eh-text'; bt.textContent = 'Create Account'; }
+            document.getElementById('authError').classList.add('hidden');
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value.trim(), password = document.getElementById('authPassword').value;
+            const errEl = document.getElementById('authError'), btnText = document.getElementById('authBtnText'), btnLoader = document.getElementById('authBtnLoader');
+            errEl.classList.add('hidden'); btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+            try {
+                let result;
+                if (authMode === 'login') result = await supabaseClient.auth.signInWithPassword({ email, password });
+                else result = await supabaseClient.auth.signUp({ email, password });
+                if (result.error) throw result.error;
+                if (authMode === 'signup' && !result.data.session) { errEl.textContent = 'Check your email for a confirmation link!'; errEl.classList.remove('hidden'); }
+            } catch (err) { errEl.textContent = err.message || 'Authentication failed'; errEl.classList.remove('hidden'); }
+            finally { btnText.classList.remove('hidden'); btnLoader.classList.add('hidden'); }
+        }
+
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            closeGame();
+            closeVideo();
+            showDashboard(null);
+        }
+
+        function openAuthGate() {
+            document.getElementById('authGateMessage').classList.remove('hidden');
+            document.getElementById('continueGuestBtn').classList.remove('hidden');
+            document.getElementById('authPage').style.display = 'flex';
+        }
+
+        function continueAsGuest() {
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('authGateMessage').classList.add('hidden');
+            document.getElementById('continueGuestBtn').classList.add('hidden');
+            navigateTo('play');
+        }
+
+        function showDashboard(user) {
+            currentUser = user;
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('authGateMessage').classList.add('hidden');
+            document.getElementById('continueGuestBtn').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+            const email = user ? (user.email || 'Gamer') : 'Guest';
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userAvatar').textContent = email.charAt(0).toUpperCase();
+            document.getElementById('signInBtn').style.display = user ? 'none' : 'flex';
+            document.getElementById('signOutBtn').style.display = user ? 'flex' : 'none';
+            navigateTo('play');
+            lucide.createIcons();
+        }
+
+        // ===== NAV =====
+        function navigateTo(page) {
+            if (page !== 'play' && !currentUser) {
+                openAuthGate();
+                return;
+            }
+            document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(page + 'Section').classList.remove('hidden');
+            const navBtn = document.querySelector(`[data-nav="${page}"]`); if (navBtn) navBtn.classList.add('active');
+            if (page === 'news') loadNews();
+            if (page === 'community') loadCommunity();
+            if (page === 'videos') loadVideos();
+            if (window.innerWidth < 768) toggleSidebar(false);
+            window.scrollTo(0, 0);
+        }
+
+        function toggleSidebar(forceState) {
+            const sb = document.getElementById('sidebar'), ov = document.getElementById('sidebarOverlay');
+            const isOpen = sb.classList.contains('sidebar-open');
+            const shouldOpen = forceState !== undefined ? forceState : !isOpen;
+            if (shouldOpen) { sb.classList.add('sidebar-open'); ov.classList.remove('hidden'); }
+            else { sb.classList.remove('sidebar-open'); ov.classList.add('hidden'); }
+        }
+
+        // ===== LIBRARY =====
+        async function loadLibraryGames() { try { const r = await fetch('data.json'); if (r.ok) { libraryGames = await r.json(); return; } } catch { } libraryGames = [...FALLBACK_LIBRARY]; }
+
+        function renderLibrary() {
+            const search = document.getElementById('librarySearch').value.toLowerCase();
+            const filtered = libraryGames.filter(g => { const ms = g.title.toLowerCase().includes(search) || g.short_description.toLowerCase().includes(search); const mg = currentGenre === 'All' || g.genre.trim() === currentGenre; return ms && mg; });
+            const grid = document.getElementById('libraryGrid'), empty = document.getElementById('libraryEmpty');
+            if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            grid.innerHTML = filtered.map((g, i) => `<div class="game-card bg-eh-card border border-eh-border rounded-2xl overflow-hidden fade-up" style="animation-delay:${i * 0.04}s"><div class="relative h-40 overflow-hidden bg-eh-bg"><img src="${g.thumbnail}" alt="${g.title}" class="card-thumb w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'"><div class="absolute top-2.5 right-2.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-eh-red/90 text-white backdrop-blur-sm">${g.genre.trim()}</span></div></div><div class="p-4"><h3 class="text-sm font-bold text-eh-text mb-1 truncate">${g.title}</h3><p class="text-xs text-eh-muted leading-relaxed mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.short_description}</p><div class="flex items-center gap-2 text-[10px] text-eh-dim mb-3"><span class="flex items-center gap-1"><i data-lucide="monitor" class="w-3 h-3"></i>${g.platform}</span><span>•</span><span>${g.release_date ? g.release_date.split('-')[0] : 'N/A'}</span></div><a href="${g.game_url}" target="_blank" rel="noopener" class="red-btn block text-center py-2.5 rounded-xl text-white text-xs font-bold tracking-wide">Get Game</a></div></div>`).join('');
+            lucide.createIcons();
+        }
+
+        function buildGenreFilters() { const g = ['All', ...new Set(libraryGames.map(x => x.genre.trim()))]; document.getElementById('genreFilters').innerHTML = g.map(x => `<button onclick="setGenre('${x}')" class="genre-filter px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${x === currentGenre ? 'bg-eh-red text-white border-eh-red' : 'border-eh-border text-eh-muted hover:border-eh-red hover:text-eh-red'}">${x}</button>`).join(''); }
+        function setGenre(g) { currentGenre = g; buildGenreFilters(); renderLibrary(); }
+        function filterLibrary() { renderLibrary(); }
+
+        // ============================================================
+        // PLAY GAMES — loads from games.json
+        // ============================================================
+        let playGamesData = [];
+        let playActiveCategory = 'All';
+        let playGamesLoaded = false;
+
+        /** Fetch games.json and render the play grid. Only runs once unless forced. */
+        async function loadPlayGames(force) {
+            if (playGamesLoaded && !force) return;
+
+            const loadingEl = document.getElementById('playLoading');
+            const gridEl = document.getElementById('playGrid');
+            const emptyEl = document.getElementById('playEmpty');
+
+            loadingEl.classList.remove('hidden');
+            gridEl.innerHTML = '';
+            emptyEl.classList.add('hidden');
+
+            try {
+                const resp = await fetch('games.json');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const games = await resp.json();
+                playGamesData = Array.isArray(games) ? games : [];
+                playGamesLoaded = true;
+                buildPlayCategoryFilters();
+                renderPlayCards(getFilteredPlayGames());
+            } catch (err) {
+                console.error('Failed to load games.json:', err);
+                gridEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                emptyEl.querySelector('p').textContent = 'Failed to load games';
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        function buildPlayCategoryFilters() {
+            const cats = ['All', ...new Set(
+                playGamesData.map(g => g.category).filter(Boolean).sort()
+            )];
+            document.getElementById('playCategoryFilters').innerHTML = cats.map(c => `
+                <button onclick="setPlayCategory('${c}')"
+                    class="play-cat-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all
+                    ${c === playActiveCategory ? 'bg-eh-red text-white' : 'bg-eh-card border border-eh-border text-eh-muted hover:text-eh-text hover:border-eh-border-l'}"
+                    data-play-cat="${c}">${c}</button>
+            `).join('');
+        }
+
+        function setPlayCategory(cat) {
+            playActiveCategory = cat;
+            document.querySelectorAll('.play-cat-btn').forEach(btn => {
+                const on = btn.dataset.playCat === cat;
+                btn.className = 'play-cat-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ' +
+                    (on ? 'bg-eh-red text-white' : 'bg-eh-card border border-eh-border text-eh-muted hover:text-eh-text hover:border-eh-border-l');
+            });
+            filterPlayGames();
+        }
+
+        function getFilteredPlayGames() {
+            const q = (document.getElementById('playSearch')?.value || '').toLowerCase().trim();
+            return playGamesData.filter(g => {
+                if (playActiveCategory !== 'All' && g.category !== playActiveCategory) return false;
+                if (q) return `${g.title} ${g.description} ${g.tags} ${g.category}`.toLowerCase().includes(q);
+                return true;
+            });
+        }
+
+        function filterPlayGames() {
+            renderPlayCards(getFilteredPlayGames());
+        }
+
+        function renderPlayCards(games) {
+            const grid = document.getElementById('playGrid');
+            const emptyEl = document.getElementById('playEmpty');
+
+            if (!games.length) {
+                grid.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            grid.innerHTML = games.map((g, i) => {
+                const title = g.title || 'Untitled';
+                const thumb = g.thumb || '';
+                const cat = g.category || '';
+                const desc = g.description || '';
+                const tags = g.tags ? g.tags.split(',').map(t => t.trim()).slice(0, 3) : [];
+                const shortDesc = desc.length > 100 ? desc.substring(0, 100) + '…' : desc;
+                const fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 384'%3E%3Crect fill='%23151515' width='512' height='384'/%3E%3Ctext x='256' y='200' fill='%23444' text-anchor='middle' font-size='48'%3E🎮%3C/text%3E%3C/svg%3E";
+
+                return `
+                <div class="play-card bg-eh-card border border-eh-border rounded-2xl overflow-hidden cursor-pointer fade-up"
+                     style="animation-delay:${Math.min(i * 0.04, 0.35)}s"
+                     onclick="openPlayGame(${i})">
+                    <div class="relative overflow-hidden">
+                        <img src="${thumb}" alt="${title}" loading="lazy"
+                             class="card-thumb w-full h-40 object-cover"
+                             onerror="this.onerror=null;this.src='${fallbackImg}'">
+                        ${cat ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-eh-red/90 text-white">${cat}</span>` : ''}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-3">
+                            <span class="text-white text-xs font-semibold flex items-center gap-1.5">
+                                <i data-lucide="play" class="w-3.5 h-3.5"></i> Play Now
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="text-sm font-bold text-eh-text mb-1 truncate">${title}</h3>
+                        ${shortDesc ? `<p class="text-xs text-eh-muted leading-relaxed mb-2.5" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${shortDesc}</p>` : ''}
+                        ${tags.length ? `<div class="flex flex-wrap gap-1.5 mb-3">${tags.map(t => `<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-eh-surface text-eh-dim border border-eh-border">${t}</span>`).join('')}</div>` : ''}
+                        <button class="red-btn w-full py-2 rounded-lg text-white text-xs font-bold tracking-wide flex items-center justify-center gap-1.5"
+                                onclick="event.stopPropagation();openPlayGame(${i})">
+                            <i data-lucide="gamepad-2" class="w-3.5 h-3.5"></i> Play
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function openPlayGame(index) {
+            const filtered = getFilteredPlayGames();
+            const g = filtered[index];
+            if (!g) return;
+
+            const overlay = document.getElementById('iframeOverlay');
+            const iframe = document.getElementById('gameIframe');
+            if (g.width && g.height) {
+                iframe.style.aspectRatio = g.width + ' / ' + g.height;
+            } else {
+                iframe.style.aspectRatio = '';
+            }
+
+            iframe.src = g.url;
+            currentGameName = g.title || 'Game';
+            document.getElementById('iframeTitle').textContent = currentGameName;
+            document.getElementById('minimizedTitle').textContent = currentGameName;
+            overlay.classList.remove('hidden');
+            overlay.style.display = 'flex';
+            document.getElementById('minimizedGame').classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ===== GAME IFRAME =====
+        function minimizeGame() { document.getElementById('iframeOverlay').style.display = 'none'; document.getElementById('minimizedTitle').textContent = currentGameName; document.getElementById('minimizedGame').classList.remove('hidden'); document.body.style.overflow = ''; }
+        function restoreGame() { document.getElementById('iframeOverlay').style.display = 'flex'; document.getElementById('minimizedGame').classList.add('hidden'); document.body.style.overflow = 'hidden'; }
+        function closeGame() { document.getElementById('iframeOverlay').style.display = 'none'; document.getElementById('iframeOverlay').classList.add('hidden'); document.getElementById('gameIframe').src = ''; document.getElementById('minimizedGame').classList.add('hidden'); document.body.style.overflow = ''; currentGameUrl = ''; currentGameName = ''; }
+
+        // ===== VIDEOS =====
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/v\/|youtube\.com\/watch\?.+&v=)([a-zA-Z0-9_-]{11})/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+            for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+            return null;
+        }
+
+        function getYouTubeThumb(videoId) {
+            return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+        }
+
+        async function loadVideos() {
+            const grid = document.getElementById('videoGrid');
+            const empty = document.getElementById('videoEmpty');
+            const loading = document.getElementById('videoLoading');
+            grid.innerHTML = ''; empty.classList.add('hidden'); loading.classList.remove('hidden');
+
+            try {
+                const r = await fetch('vid.json');
+                if (r.ok) { videoData = await r.json(); } else { throw new Error('fetch failed'); }
+            } catch { videoData = [...FALLBACK_VIDEOS]; }
+
+            loading.classList.add('hidden');
+            buildVideoFilters();
+            filterVideos();
+        }
+
+        function buildVideoFilters() {
+            // Game filter pills
+            const games = ['All', ...new Set(videoData.map(v => v.game).filter(Boolean))];
+            document.getElementById('videoGameFilters').innerHTML = games.map(g =>
+                `<button onclick="setVideoGame('${g.replace(/'/g, "\\'")}')" class="vid-game-filter px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${g === currentVideoGame ? 'bg-eh-red text-white border-eh-red' : 'border-eh-border text-eh-muted hover:border-eh-red hover:text-eh-red'}">${g}</button>`
+            ).join('');
+
+            // YouTuber dropdown
+            const youtubers = [...new Set(videoData.map(v => v.youtuber).filter(Boolean))].sort();
+            const sel = document.getElementById('videoYoutuberFilter');
+            sel.innerHTML = '<option value="All">All YouTubers</option>' + youtubers.map(y => `<option value="${y}">${y}</option>`).join('');
+        }
+
+        function setVideoGame(game) { currentVideoGame = game; buildVideoFilters(); filterVideos(); }
+
+        function filterVideos() {
+            const search = (document.getElementById('videoSearch').value || '').toLowerCase();
+            const youtuber = document.getElementById('videoYoutuberFilter').value;
+
+            const filtered = videoData.filter(v => {
+                const haystack = [v.name, v.youtuber, v.desc, v.game].filter(Boolean).join(' ').toLowerCase();
+                const matchSearch = haystack.includes(search);
+                const matchGame = currentVideoGame === 'All' || v.game === currentVideoGame;
+                const matchYoutuber = youtuber === 'All' || v.youtuber === youtuber;
+                return matchSearch && matchGame && matchYoutuber;
+            });
+
+            document.getElementById('videoCount').textContent = filtered.length + ' video' + (filtered.length !== 1 ? 's' : '');
+            const grid = document.getElementById('videoGrid'), empty = document.getElementById('videoEmpty');
+
+            if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            grid.innerHTML = filtered.map((v, i) => {
+                const ytId = extractYouTubeId(v.link);
+                const thumb = ytId ? getYouTubeThumb(ytId) : '';
+                return `<div class="video-card bg-eh-card border border-eh-border rounded-2xl overflow-hidden fade-up cursor-pointer" style="animation-delay:${i * 0.04}s" onclick="playVideo('${v.link.replace(/'/g, "\\'")}','${v.name.replace(/'/g, "\\'")}','${v.youtuber.replace(/'/g, "\\'")}')">
+            <div class="yt-thumb relative">
+                ${thumb ? `<img src="${thumb}" alt="${v.name}" class="vid-thumb" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-eh-dim\\'><i data-lucide=\\'video\\' class=\\'w-10 h-10\\'></i></div>'">` : `<div class="flex items-center justify-center h-full text-eh-dim"><i data-lucide="video" class="w-10 h-10"></i></div>`}
+                <div class="play-icon absolute top-1/2 left-1/2 w-14 h-14 rounded-full bg-eh-red/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-red-900/40">
+                    <i data-lucide="play" class="w-6 h-6 text-white ml-0.5"></i>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div class="absolute bottom-2.5 left-2.5 right-2.5">
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-eh-red/80 text-white backdrop-blur-sm">${v.game || 'Gaming'}</span>
+                </div>
+            </div>
+            <div class="p-4">
+                <h3 class="text-sm font-bold text-eh-text mb-1.5 leading-snug" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(v.name)}</h3>
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-5 h-5 rounded-full bg-eh-red/15 flex items-center justify-center text-eh-red text-[9px] font-bold flex-shrink-0">${(v.youtuber || '?').charAt(0)}</div>
+                    <span class="text-xs text-eh-muted font-medium truncate">${escapeHtml(v.youtuber || 'Unknown')}</span>
+                </div>
+                <p class="text-[11px] text-eh-dim leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(v.desc)}</p>
+            </div>
+        </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // ===== VIDEO PLAYER =====
+        function playVideo(link, name, youtuber) {
+            const ytId = extractYouTubeId(link);
+            if (!ytId) { showToast('Could not load this video', 'error'); return; }
+
+            currentVideoId = ytId; currentVideoName = name; currentVideoYoutuber = youtuber;
+
+            document.getElementById('videoOverlayTitle').textContent = name;
+            document.getElementById('videoOverlayYoutuber').textContent = youtuber;
+            document.getElementById('videoIframe').src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
+
+            document.getElementById('videoOverlay').classList.remove('hidden');
+            document.getElementById('videoOverlay').style.display = 'flex';
+            document.getElementById('minimizedVideo').classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function minimizeVideo() {
+            document.getElementById('videoOverlay').style.display = 'none';
+            document.getElementById('minimizedVideoTitle').textContent = currentVideoName;
+            document.getElementById('minimizedVideo').classList.remove('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function restoreVideo() {
+            document.getElementById('videoOverlay').style.display = 'flex';
+            document.getElementById('minimizedVideo').classList.add('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeVideo() {
+            document.getElementById('videoOverlay').style.display = 'none';
+            document.getElementById('videoOverlay').classList.add('hidden');
+            document.getElementById('videoIframe').src = '';
+            document.getElementById('minimizedVideo').classList.add('hidden');
+            document.body.style.overflow = '';
+            currentVideoId = ''; currentVideoName = ''; currentVideoYoutuber = '';
+        }
+
+        // ===== NEWS =====
+        async function loadNews() {
+            const feed = document.getElementById('newsFeed'), empty = document.getElementById('newsEmpty'), errEl = document.getElementById('newsError');
+            feed.innerHTML = ''; empty.classList.add('hidden'); errEl.classList.add('hidden');
+            try {
+                const { data, error } = await supabaseClient.from('news').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                if (!data || data.length === 0) { empty.classList.remove('hidden'); return; }
+                feed.innerHTML = data.map((n, i) => {
+                    const d = new Date(n.created_at);
+                    const ts = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    return `<div class="news-card bg-eh-card border border-eh-border rounded-xl p-4 fade-up" style="animation-delay:${i * 0.05}s"><div class="flex items-start gap-3"><div class="w-9 h-9 rounded-full bg-eh-red/15 flex items-center justify-center text-eh-red font-bold text-sm flex-shrink-0 mt-0.5">${(n.user_email || '?').charAt(0).toUpperCase()}</div><div class="min-w-0 flex-1"><h4 class="text-sm font-bold text-eh-text mb-1">${escapeHtml(n.title)}</h4><p class="text-xs text-eh-muted leading-relaxed mb-2">${escapeHtml(n.description)}</p><div class="flex items-center gap-2 text-[10px] text-eh-dim"><span>${n.user_email || 'Anonymous'}</span><span>•</span><span>${ts}</span></div></div></div></div>`;
+                }).join('');
+            } catch (e) { console.error(e); errEl.classList.remove('hidden'); }
+        }
+
+        async function postNews() {
+            if (!currentUser) { showToast('Sign in to post news', 'error'); return; }
+            const title = document.getElementById('newsTitle').value.trim(), desc = document.getElementById('newsDesc').value.trim();
+            if (!title || !desc) { showToast('Title and description are required', 'error'); return; }
+            const btn = document.getElementById('newsPostBtn'); btn.disabled = true; btn.textContent = 'Posting...';
+            try {
+                const { error } = await supabaseClient.from('news').insert({ title, description: desc, user_id: currentUser.id, user_email: currentUser.email });
+                if (error) throw error;
+                document.getElementById('newsTitle').value = ''; document.getElementById('newsDesc').value = '';
+                showToast('News published!', 'success'); loadNews();
+            } catch (e) { console.error(e); showToast('Failed to post — check if the news table exists', 'error'); }
+            finally { btn.disabled = false; btn.textContent = 'Publish'; }
+        }
+
+        // ===== COMMUNITY =====
+        async function loadCommunity() {
+            const grid = document.getElementById('communityGrid'), empty = document.getElementById('communityEmpty'), errEl = document.getElementById('communityError'), loading = document.getElementById('communityLoading'), countEl = document.getElementById('memberCount');
+            grid.innerHTML = ''; empty.classList.add('hidden'); errEl.classList.add('hidden'); loading.classList.remove('hidden'); countEl.textContent = '';
+            try {
+                const { data, error } = await supabaseClient.from('profiles').select('*');
+                loading.classList.add('hidden'); if (error) throw error;
+                allProfiles = data || [];
+                countEl.textContent = allProfiles.length + ' member' + (allProfiles.length !== 1 ? 's' : '');
+                if (allProfiles.length === 0) { empty.classList.remove('hidden'); return; }
+                filterCommunity();
+            } catch (e) { console.error(e); loading.classList.add('hidden'); errEl.classList.remove('hidden'); }
+        }
+
+        function filterCommunity() {
+            const search = (document.getElementById('communitySearch').value || '').toLowerCase(), sort = document.getElementById('communitySort').value;
+            let filtered = allProfiles.filter(p => { const h = [p.username, p.display_name, p.email, p.location, p.bio].filter(Boolean).join(' ').toLowerCase(); return h.includes(search); });
+            switch (sort) {
+                case 'newest': filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)); break;
+                case 'oldest': filtered.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0)); break;
+                case 'most-followers': filtered.sort((a, b) => (b.followers || []).length - (a.followers || []).length); break;
+                case 'most-tokens': filtered.sort((a, b) => (b.tokens || 0) - (a.tokens || 0)); break;
+                case 'username-az': filtered.sort((a, b) => (a.username || '').localeCompare(b.username || '')); break;
+            }
+            const grid = document.getElementById('communityGrid'), empty = document.getElementById('communityEmpty');
+            if (filtered.length === 0) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            grid.innerHTML = filtered.map((p, i) => {
+                const tc = THEME_COLORS[p.theme] || THEME_COLORS.red, initials = getInitials(p), fCount = (p.followers || []).length, fgCount = (p.following || []).length;
+                const isMe = currentUser && p.id === currentUser.id, isFollowing = currentUser && !isMe && (p.followers || []).includes(currentUser.id);
+                return `<div class="profile-card bg-eh-card border border-eh-border rounded-2xl overflow-hidden fade-up cursor-pointer" style="animation-delay:${i * 0.04}s" onclick="openProfileModal('${p.id}')">
+            <div class="h-16 relative" style="background:linear-gradient(135deg,${tc}22,${tc}08)"><div class="theme-dot absolute top-3 right-3" style="background:${tc}"></div></div>
+            <div class="px-4 pb-4 -mt-8">
+                <div class="w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center text-lg font-black flex-shrink-0 mb-3" style="background:linear-gradient(135deg,${tc}30,${tc}10);color:${tc};border:3px solid #151515">${p.profile_pic ? `<img src="${p.profile_pic}" class="w-full h-full object-cover" onerror="this.outerHTML='${initials}'">` : initials}</div>
+                <h3 class="text-sm font-bold text-eh-text truncate">${escapeHtml(p.display_name || p.username || 'Unknown')}</h3>
+                <p class="text-xs text-eh-muted mb-2">${p.username ? '@' + escapeHtml(p.username) : ''}</p>
+                ${p.bio ? `<p class="text-[11px] text-eh-dim leading-relaxed mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(p.bio)}</p>` : '<div class="mb-3"></div>'}
+                <div class="flex items-center gap-4 text-[11px] text-eh-dim mb-3"><span><strong class="text-eh-text font-semibold">${fCount}</strong> followers</span><span><strong class="text-eh-text font-semibold">${fgCount}</strong> following</span></div>
+                <div class="flex items-center justify-between"><span class="text-[10px] text-eh-dim">${p.location ? '📍 ' + escapeHtml(p.location) : (p.created_at ? new Date(p.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '')}</span>
+                ${isMe ? '<span class="text-[10px] text-eh-dim font-semibold">You</span>' : `<button onclick="event.stopPropagation();toggleFollow('${p.id}',this)" class="outline-btn px-3 py-1.5 rounded-lg text-[11px] font-semibold ${isFollowing ? 'following' : 'text-eh-muted'}">${isFollowing ? 'Following' : 'Follow'}</button>`}</div>
+            </div></div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function getInitials(p) {
+            if (p.display_name) { const s = p.display_name.trim().split(/\s+/); return s.length >= 2 ? (s[0][0] + s[s.length - 1][0]).toUpperCase() : s[0][0].toUpperCase(); }
+            if (p.username) return p.username[0].toUpperCase(); if (p.email) return p.email[0].toUpperCase(); return '?';
+        }
+
+        async function toggleFollow(targetId, btnEl) {
+            if (!currentUser) { showToast('Sign in to follow users', 'error'); return; } if (targetId === currentUser.id) return;
+            const isFollowing = btnEl.classList.contains('following'); btnEl.disabled = true; btnEl.textContent = '...';
+            try {
+                const { data: profile } = await supabaseClient.from('profiles').select('followers').eq('id', targetId).single();
+                let followers = profile.followers || [];
+                if (isFollowing) followers = followers.filter(id => id !== currentUser.id); else { if (!followers.includes(currentUser.id)) followers.push(currentUser.id); }
+                await supabaseClient.from('profiles').update({ followers }).eq('id', targetId);
+                const { data: myP } = await supabaseClient.from('profiles').select('following').eq('id', currentUser.id).single();
+                if (myP) { let following = myP.following || []; if (isFollowing) following = following.filter(id => id !== targetId); else { if (!following.includes(targetId)) following.push(targetId); } await supabaseClient.from('profiles').update({ following }).eq('id', currentUser.id); }
+                const tp = allProfiles.find(p => p.id === targetId); if (tp) tp.followers = followers;
+                btnEl.classList.toggle('following', !isFollowing); btnEl.textContent = isFollowing ? 'Follow' : 'Following'; btnEl.disabled = false;
+            } catch (e) { console.error(e); showToast('Failed to update follow', 'error'); btnEl.disabled = false; btnEl.textContent = isFollowing ? 'Following' : 'Follow'; }
+        }
+
+        // ===== PROFILE MODAL =====
+        function openProfileModal(profileId) {
+            const p = allProfiles.find(pr => pr.id === profileId); if (!p) return; viewingProfileId = profileId;
+            const tc = THEME_COLORS[p.theme] || THEME_COLORS.red, initials = getInitials(p), fCount = (p.followers || []).length, fgCount = (p.following || []).length;
+            const isMe = currentUser && p.id === currentUser.id, isFollowing = currentUser && !isMe && (p.followers || []).includes(currentUser.id);
+            document.getElementById('profileModalBanner').style.background = `linear-gradient(135deg,${tc}40,${tc}15,#101010)`;
+            const av = document.getElementById('modalAvatar'); av.style.background = `linear-gradient(135deg,${tc}35,${tc}15)`; av.style.color = tc;
+            av.innerHTML = p.profile_pic ? `<img src="${p.profile_pic}" class="w-full h-full object-cover" onerror="this.outerHTML='${escapeHtml(initials)}'">` : initials;
+            document.getElementById('modalDisplayName').textContent = p.display_name || p.username || 'Unknown';
+            document.getElementById('modalUsername').textContent = p.username ? '@' + p.username : '';
+            const bioEl = document.getElementById('modalBio'); if (p.bio) { bioEl.textContent = p.bio; bioEl.classList.remove('hidden'); } else bioEl.classList.add('hidden');
+            document.getElementById('modalFollowers').textContent = fCount; document.getElementById('modalFollowing').textContent = fgCount; document.getElementById('modalTokens').textContent = (p.tokens || 0).toLocaleString();
+            let dHtml = '';
+            if (p.email) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="mail" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><span class="text-eh-muted truncate">${escapeHtml(p.email)}</span></div>`;
+            if (p.location) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><span class="text-eh-muted">${escapeHtml(p.location)}</span></div>`;
+            if (p.website) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="globe" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><a href="${p.website.startsWith('http') ? p.website : 'https://' + p.website}" target="_blank" rel="noopener" class="text-eh-red hover:underline truncate">${escapeHtml(p.website.replace(/^https?:\/\//, ''))}</a></div>`;
+            if (p.peer_id) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="wifi" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><span class="text-eh-muted font-mono text-[11px]">${escapeHtml(p.peer_id)}</span></div>`;
+            if (p.created_at) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="calendar" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><span class="text-eh-muted">Joined ${new Date(p.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></div>`;
+            if (p.theme) dHtml += `<div class="flex items-center gap-2.5 text-xs"><i data-lucide="palette" class="w-3.5 h-3.5 text-eh-dim flex-shrink-0"></i><span class="text-eh-muted capitalize">${p.theme}</span><div class="theme-dot" style="background:${tc}"></div></div>`;
+            document.getElementById('modalDetails').innerHTML = dHtml;
+            const cw = document.getElementById('modalCars'), cl = document.getElementById('modalCarsList');
+            if (p.garage_cars && Array.isArray(p.garage_cars) && p.garage_cars.length > 0) { cw.classList.remove('hidden'); cl.innerHTML = p.garage_cars.map(c => `<span class="px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-eh-bg border border-eh-border text-eh-muted">${escapeHtml(c.name || c.model || 'Car')}</span>`).join(''); } else cw.classList.add('hidden');
+            const fb = document.getElementById('modalFollowBtn');
+            if (isMe) { fb.textContent = 'This Is You'; fb.className = 'w-full py-3 rounded-xl text-sm font-bold tracking-wide border border-eh-border text-eh-dim cursor-default'; fb.style.background = 'transparent'; fb.onclick = null; }
+            else { fb.style.background = ''; if (isFollowing) { fb.textContent = 'Unfollow'; fb.className = 'outline-btn following w-full py-3 rounded-xl text-sm font-bold tracking-wide'; } else { fb.textContent = 'Follow'; fb.className = 'red-btn w-full py-3 rounded-xl text-white text-sm font-bold tracking-wide'; } fb.onclick = toggleFollowFromModal; }
+            document.getElementById('profileModal').classList.add('active'); document.body.style.overflow = 'hidden'; lucide.createIcons();
+        }
+
+        async function toggleFollowFromModal() {
+            if (!viewingProfileId || !currentUser) return;
+            const fb = document.getElementById('modalFollowBtn'), isFollowing = fb.classList.contains('following'); fb.disabled = true; fb.textContent = '...';
+            try {
+                const { data: profile } = await supabaseClient.from('profiles').select('followers').eq('id', viewingProfileId).single();
+                let followers = profile.followers || [];
+                if (isFollowing) followers = followers.filter(id => id !== currentUser.id); else { if (!followers.includes(currentUser.id)) followers.push(currentUser.id); }
+                await supabaseClient.from('profiles').update({ followers }).eq('id', viewingProfileId);
+                const { data: myP } = await supabaseClient.from('profiles').select('following').eq('id', currentUser.id).single();
+                if (myP) { let f = myP.following || []; if (isFollowing) f = f.filter(id => id !== viewingProfileId); else { if (!f.includes(viewingProfileId)) f.push(viewingProfileId); } await supabaseClient.from('profiles').update({ following: f }).eq('id', currentUser.id); }
+                const tp = allProfiles.find(p => p.id === viewingProfileId); if (tp) tp.followers = followers;
+                document.getElementById('modalFollowers').textContent = followers.length;
+                if (isFollowing) { fb.textContent = 'Follow'; fb.className = 'red-btn w-full py-3 rounded-xl text-white text-sm font-bold tracking-wide'; } else { fb.textContent = 'Unfollow'; fb.className = 'outline-btn following w-full py-3 rounded-xl text-sm font-bold tracking-wide'; }
+                fb.disabled = false; filterCommunity();
+            } catch (e) { console.error(e); showToast('Failed to update follow', 'error'); fb.disabled = false; fb.textContent = isFollowing ? 'Unfollow' : 'Follow'; }
+        }
+
+        function closeProfileModal() { document.getElementById('profileModal').classList.remove('active'); document.body.style.overflow = ''; viewingProfileId = null; }
+
+        // ===== UTILITIES =====
+        function escapeHtml(str) { if (!str) return ''; const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+        let toastTimer;
+        function showToast(msg, type = 'success') { const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast fixed bottom-5 left-1/2 -translate-x-1/2 z-[600] px-5 py-3 rounded-xl text-sm font-medium shadow-2xl ${type === 'error' ? 'bg-red-600 text-white' : 'bg-eh-surface border border-eh-border text-eh-text'}`; clearTimeout(toastTimer); requestAnimationFrame(() => t.classList.add('show')); toastTimer = setTimeout(() => t.classList.remove('show'), 3000); }
+
+        // ===== KEYBOARD =====
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                if (document.getElementById('profileModal').classList.contains('active')) closeProfileModal();
+                else if (document.getElementById('videoOverlay').style.display === 'flex') minimizeVideo();
+                else if (document.getElementById('iframeOverlay').style.display === 'flex') minimizeGame();
+            }
+        });
+
+        // ===== INIT =====
+        async function init() {
+            lucide.createIcons();
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            showDashboard(session && session.user ? session.user : null);
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) showDashboard(session.user);
+                if (event === 'SIGNED_OUT') showDashboard(null);
+            });
+            await Promise.all([loadLibraryGames(), loadPlayGames()]);
+            buildGenreFilters(); renderLibrary();
+        }
+        init();
+    </script>
+    <script>
+     
+window.PAUI_DARK_MODE = true; 
+window.PAUI_THEME_COLOR = '#FF0000';
+
+(function() {
+    // ============================================
+    // DYNAMIC THEME CONFIG
+    // ============================================
+    const PRIMARY_COLOR = window.PAUI_THEME_COLOR || '#6366F1'; 
+    const IS_DARK_MODE = window.PAUI_DARK_MODE || false;
+
+    // Derived theme colors
+    const TEXT_COLOR = IS_DARK_MODE ? '#FFFFFF' : '#000000';
+    const CARD_BG = IS_DARK_MODE ? '#1E293B' : '#FFFFFF';
+    const OVERLAY_BG = IS_DARK_MODE ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.6)';
+    const INPUT_BG = IS_DARK_MODE ? '#334155' : '#F3F4F6';
+    const INPUT_BORDER = IS_DARK_MODE ? '#475569' : '#D1D5DB';
+    const SUBTLE_TEXT = IS_DARK_MODE ? '#94A3B8' : '#64748B';
+
+    // ============================================
+    // CSS INJECTION
+    // ============================================
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .paui-premium-btn {
+            background: ${PRIMARY_COLOR};
+            color: ${TEXT_COLOR};
+            font-weight: 700;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: transform 0.2s, opacity 0.2s;
+            margin-left: auto;
+        }
+        .paui-premium-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .paui-premium-btn svg { width: 18px; height: 18px; }
+
+        .paui-grad-text {
+            background: linear-gradient(135deg, #EC4899, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .paui-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: ${OVERLAY_BG}; backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center; z-index: 9999;
+            animation: pauiFadeIn 0.3s ease-out;
+        }
+        .paui-overlay.active { display: flex; }
+
+        .paui-card {
+            background: ${CARD_BG}; color: ${TEXT_COLOR}; border-radius: 16px; padding: 24px;
+            max-width: 400px; width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center; max-height: 90vh; overflow-y: auto;
+        }
+        .paui-card h2 { margin-top: 0; font-size: 22px; color: ${TEXT_COLOR}; }
+        .paui-card p { font-size: 14px; color: ${SUBTLE_TEXT}; margin-bottom: 10px; }
+        
+        .paui-input {
+            width: 100%; padding: 12px; border: 1px solid ${INPUT_BORDER}; border-radius: 8px;
+            background: ${INPUT_BG}; color: ${TEXT_COLOR};
+            font-size: 16px; text-transform: uppercase; letter-spacing: 2px;
+            text-align: center; margin-bottom: 15px; box-sizing: border-box;
+        }
+        .paui-input:focus { outline: none; border-color: ${PRIMARY_COLOR}; box-shadow: 0 0 0 2px ${PRIMARY_COLOR}33; }
+
+        .paui-btn { padding: 12px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 8px; font-size: 15px; transition: opacity 0.2s; }
+        .paui-btn:hover { opacity: 0.9; }
+        .paui-btn-primary { background: ${PRIMARY_COLOR}; color: ${TEXT_COLOR}; }
+        .paui-btn-green { background: #00C853; color: #fff; }
+        .paui-btn-outline { background: transparent; border: 1px solid ${INPUT_BORDER}; color: ${TEXT_COLOR}; }
+        .paui-btn-link { background: #00C853; color: #fff; text-decoration: none; display: block; }
+        .paui-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        .paui-error { color: #ff3333; font-size: 12px; margin-top: -10px; margin-bottom: 10px; display: none; }
+        .paui-pay-details { background: ${INPUT_BG}; padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 13px; color: ${TEXT_COLOR};}
+        .paui-pay-details strong { color: ${TEXT_COLOR}; }
+        
+        /* Custom Checklist & Pages */
+        .paui-terms-wrap { display: flex; align-items: flex-start; gap: 8px; text-align: left; margin: 15px 0; font-size: 12px; color: ${SUBTLE_TEXT}; }
+        .paui-terms-wrap input { margin-top: 2px; accent-color: ${PRIMARY_COLOR}; }
+        .paui-page-list { text-align: left; margin: 10px 0 20px 0; padding-left: 20px; font-size: 14px; color: ${TEXT_COLOR}; }
+        .paui-page-list li { margin-bottom: 4px; }
+        .paui-duration-badge { display: inline-block; font-size: 12px; background: ${INPUT_BG}; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; font-weight: 600; color: ${PRIMARY_COLOR}; }
+
+        /* Custom Notification */
+        #pauiNotifOverlay { z-index: 10001; }
+        .paui-notif-box { text-align: center; }
+        .paui-notif-icon { font-size: 40px; margin-bottom: 10px; }
+        .paui-notif-body { text-align: left; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
+        /* Fallback fixed button */
+        .paui-fixed-fallback { position: fixed; bottom: 20px; right: 20px; z-index: 9998; margin-left: 0; }
+
+        @keyframes pauiFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    `;
+    document.head.appendChild(style);
+
+    // ============================================
+    // HTML INJECTION
+    // ============================================
+    const wrapper = document.createElement('div');
+    wrapper.id = 'paui-premium-container';
+    wrapper.innerHTML = `
+        <!-- The Button -->
+        <button class="paui-premium-btn" id="pauiUnlockBtn" onclick="window.pauiOpenAdDialog()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 12v2h14v-2"/></svg>
+            UNLOCK PREMIUM
+        </button>
+
+        <!-- Dialog 1: Ad -->
+        <div id="pauiAdDialog" class="paui-overlay">
+            <div class="paui-card">
+                <h2>Go <span class="paui-grad-text">Premium</span> Today!</h2>
+                <p>Unlock exclusive features and pages to supercharge your experience:</p>
+                
+                <ul id="pauiAdPagesList" class="paui-page-list"></ul>
+
+                <div class="paui-duration-badge" style="color:#800080;">⏱️ Valid for 30 Days</div>
+
+                <div class="paui-terms-wrap">
+                    <input type="checkbox" id="pauiTermsCheck">
+                    <label for="pauiTermsCheck">I agree to the 7-day refund policy and terms of service.</label>
+                </div>
+
+                <button class="paui-btn paui-btn-primary" id="pauiBuyBtn" disabled onclick="window.pauiBuyPremium()">Buy Premium - 250 KSH</button>
+                <button class="paui-btn paui-btn-outline" onclick="window.pauiCloseDialog('pauiAdDialog')">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Dialog 2: M-Pesa Payment -->
+        <div id="pauiMpesaDialog" class="paui-overlay">
+            <div class="paui-card">
+                <h2>Complete <span class="paui-grad-text">Payment</span></h2>
+                <div class="paui-pay-details">
+                    <p><strong>Paybill/Till:</strong> 254748895875</p>
+                    <p><strong>Amount:</strong> 250 KSH</p>
+                </div>
+                
+                <a href="intent://#Intent;package=com.safaricom.mysafaricom;scheme=https;end" class="paui-btn paui-btn-link" target="_blank">
+                    Open MySafaricom App
+                </a>
+                <br>
+                
+                <p style="font-size:12px; margin-top:10px;">After sending, enter the M-Pesa confirmation code below:</p>
+                <input type="text" id="pauiMpesaCodeInput" class="paui-input" placeholder="e.g. SBK3V4K7QR" maxlength="10">
+                <div id="pauiCodeError" class="paui-error">Invalid Safaricom code format.</div>
+                
+                <button class="paui-btn paui-btn-green" onclick="window.pauiVerifyAndSubscribe()">Verify & Subscribe</button>
+                <button class="paui-btn paui-btn-outline" onclick="window.pauiCloseDialog('pauiMpesaDialog')">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Custom Notification Box -->
+        <div id="pauiNotifOverlay" class="paui-overlay">
+            <div class="paui-card paui-notif-box">
+                <div id="pauiNotifIcon" class="paui-notif-icon"></div>
+                <h2 id="pauiNotifTitle"></h2>
+                <div id="pauiNotifBody" class="paui-notif-body"></div>
+                <button class="paui-btn paui-btn-primary" onclick="window.pauiCloseDialog('pauiNotifOverlay')">Okay</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(wrapper);
+
+    // ============================================
+    // SMART NAV INJECTION & LOGIC
+    // ============================================
+    const injectButton = () => {
+        const btn = document.getElementById('pauiUnlockBtn');
+        if (!btn) return;
+
+        const nav = document.querySelector('nav');
+        if (nav) {
+            nav.appendChild(btn);
+        } else {
+            btn.classList.add('paui-fixed-fallback');
+            document.body.appendChild(btn);
+        }
+
+        // Checkbox Logic: Enable Buy button only if terms are agreed to
+        const termsCheck = document.getElementById('pauiTermsCheck');
+        const buyBtn = document.getElementById('pauiBuyBtn');
+        if (termsCheck && buyBtn) {
+            termsCheck.addEventListener('change', (e) => {
+                buyBtn.disabled = !e.target.checked;
+            });
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', injectButton);
+    } else {
+        injectButton();
+    }
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    const getPagesListHTML = () => {
+        if (typeof PAUI_CONFIG === 'undefined' || !PAUI_CONFIG.pnb || PAUI_CONFIG.pnb.length === 0) {
+            return '<li>- All Premium Features</li>';
+        }
+        return PAUI_CONFIG.pnb.map(page => `<li>- ${page}</li>`).join('');
+    };
+
+    const showNotification = (title, bodyHTML, isSuccess = true) => {
+        document.getElementById('pauiNotifTitle').innerHTML = title;
+        document.getElementById('pauiNotifBody').innerHTML = bodyHTML;
+        document.getElementById('pauiNotifIcon').textContent = isSuccess ? '🎉' : '⚠️';
+        document.getElementById('pauiNotifOverlay').classList.add('active');
+    };
+
+    // ============================================
+    // GLOBAL ACTION FUNCTIONS
+    // ============================================
+    window.pauiOpenAdDialog = () => {
+        document.getElementById('pauiAdPagesList').innerHTML = getPagesListHTML();
+        document.getElementById('pauiAdDialog').classList.add('active');
+    };
+
+    window.pauiBuyPremium = () => {
+        if (!document.getElementById('pauiTermsCheck').checked) return;
+        window.pauiCloseDialog('pauiAdDialog');
+        document.getElementById('pauiMpesaDialog').classList.add('active');
+    };
+
+    window.pauiCloseDialog = (id) => {
+        document.getElementById(id).classList.remove('active');
+        if (id === 'pauiMpesaDialog') {
+            document.getElementById('pauiMpesaCodeInput').value = '';
+            document.getElementById('pauiCodeError').style.display = 'none';
+        }
+    };
+
+    // ============================================
+    // SAFARICOM VALIDATOR
+    // ============================================
+    const validateSafaricomCode = (code) => {
+        if (code.length !== 10) return false;
+        const regex = /^[A-Z][A-L][1-9A-V][0-9][A-Z0-9]{6}$/;
+        return regex.test(code.toUpperCase());
+    };
+
+    // ============================================
+    // SUPABASE INTEGRATION
+    // ============================================
+    window.pauiVerifyAndSubscribe = async () => {
+        const codeInput = document.getElementById('pauiMpesaCodeInput');
+        const errorDiv = document.getElementById('pauiCodeError');
+        const code = codeInput.value.trim().toUpperCase();
+
+        if (!validateSafaricomCode(code)) {
+            errorDiv.style.display = 'block';
+            codeInput.style.borderColor = '#ff3333';
+            return;
+        } else {
+            errorDiv.style.display = 'none';
+            codeInput.style.borderColor = '#00C853';
+        }
+
+        if (typeof supabaseClient === 'undefined' || typeof PAUI_CONFIG === 'undefined') {
+            showNotification('System Error', 'Core configuration missing. Cannot verify.', false);
+            return;
+        }
+
+        const site = PAUI_CONFIG.ssn;
+
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+        if (!user || authError) {
+            showNotification('Not Logged In', 'You must be logged in to verify payment and unlock premium.', false);
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0];
+
+        const { error: insertError } = await supabaseClient.from('premium_subscription').insert({
+            uuid: user.id,
+            email: user.email,
+            time: timeStr,
+            date: dateStr,
+            site: site,
+            safaricom_code: code
+        });
+
+        if (insertError) {
+            if (insertError.code === '23505') {
+                showNotification('Already Used', 'This M-Pesa code has already been used to activate premium.', false);
+            } else {
+                showNotification('Database Error', 'Error saving subscription. Please try again or contact support.', false);
+                console.error(insertError);
+            }
+            return;
+        }
+
+        const columnName = `paui_${site}`;
+        const { error: updateError } = await supabaseClient
+            .from('profiles')
+            .update({ [columnName]: true })
+            .eq('id', user.id);
+
+        if (updateError) {
+            showNotification('Activation Error', `Payment recorded, but failed to unlock features. Contact support with code: <strong>${code}</strong>`, false);
+            console.error(updateError);
+            return;
+        }
+
+        if (typeof pauiLoadAccess === 'function') {
+            await pauiLoadAccess();
+        }
+
+        // Success Notification: Informing them AGAIN about the 30 day duration
+        const unlockedPagesHTML = PAUI_CONFIG.pnb.map(p => `- ${p}`).join('<br>');
+        const successBody = `
+            <p style="color:${TEXT_COLOR};">You have successfully unlocked:</p>
+            <p style="margin-top:10px; font-weight:600; color:${TEXT_COLOR};">${unlockedPagesHTML || 'All Premium Features'}</p>
+            <div style="margin-top:15px; padding:8px; background:${INPUT_BG}; border-radius:8px; font-size:13px; color:#800080; font-weight:600;">
+                ⏱️ Access valid for 30 days
+            </div>
+        `;
+        showNotification('Premium Unlocked!', successBody, true);
+
+        window.pauiCloseDialog('pauiMpesaDialog');
+        
+        const unlockBtn = document.getElementById('pauiUnlockBtn');
+        if (unlockBtn) unlockBtn.style.display = 'none';
+    };
+
+})();
+        (function() {
+    const PAUI_PREMIUM_CHECK_INTERVAL = 500;
+    const PAUI_PREMIUM_MAX_WAIT = 10000;
+
+    const checkAndHidePremiumButton = async () => {
+        try {
+            if (typeof supabaseClient === 'undefined' || typeof PAUI_CONFIG === 'undefined') {
+                return false;
+            }
+
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+            if (authError || !user) {
+                // Not logged in — keep button visible so they can buy
+                return true;
+            }
+
+            const columnName = `paui_${PAUI_CONFIG.ssn}`;
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select(columnName)
+                .eq('id', user.id)
+                .single();
+
+            if (error) {
+                console.warn('PAUI Premium Check: Could not read profile —', error.message);
+                return true;
+            }
+
+            if (data && data[columnName] === true) {
+                const btn = document.getElementById('pauiUnlockBtn');
+                if (btn) {
+                    btn.style.display = 'none';
+                    console.log('PAUI Premium Check: User already has premium. Button hidden.');
+                }
+                return true; // done
+            }
+
+            // Value is false/null — ensure button is visible
+            const btn = document.getElementById('pauiUnlockBtn');
+            if (btn) btn.style.display = '';
+            return true; // done
+
+        } catch (e) {
+            console.error('PAUI Premium Check: Unexpected error —', e);
+            return false;
+        }
+    };
+
+    const waitForDepsAndRun = () => {
+        let elapsed = 0;
+
+        const timer = setInterval(async () => {
+            elapsed += PAUI_PREMIUM_CHECK_INTERVAL;
+
+            const depsReady = typeof supabaseClient !== 'undefined' && typeof PAUI_CONFIG !== 'undefined';
+            const btnExists = document.getElementById('pauiUnlockBtn') !== null;
+
+            if (depsReady && btnExists) {
+                clearInterval(timer);
+                await checkAndHidePremiumButton();
+            }
+
+            if (elapsed >= PAUI_PREMIUM_MAX_WAIT) {
+                clearInterval(timer);
+                console.warn('PAUI Premium Check: Timed out waiting for dependencies or button element.');
+            }
+        }, PAUI_PREMIUM_CHECK_INTERVAL);
+    };
+
+    // Also re-check on auth state changes (login/logout mid-session)
+    const listenForAuthChanges = () => {
+        if (typeof supabaseClient === 'undefined') return;
+
+        supabaseClient.auth.onAuthStateChange(async (event) => {
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                // Small delay to let the UI settle
+                setTimeout(async () => {
+                    await checkAndHidePremiumButton();
+                }, 600);
+            }
+        });
+    };
+
+    // Boot
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            waitForDepsAndRun();
+            listenForAuthChanges();
+        });
+    } else {
+        waitForDepsAndRun();
+        listenForAuthChanges();
+    }
+})();
+(function () {
+    const POLL_MS = 500;
+    const MAX_WAIT_MS = 15000;
+
+    const hideStudio = () => {
+        const btn = document.querySelector('[data-nav="studio"]');
+        if (btn) {
+            btn.style.display = 'none';
+            console.log('PAUI Studio Gate: Hidden — user is not premium.');
+        }
+    };
+
+    const showStudio = () => {
+        const btn = document.querySelector('[data-nav="studio"]');
+        if (btn) {
+            btn.style.display = '';
+            console.log('PAUI Studio Gate: Visible — user has premium.');
+        }
+    };
+
+    const checkPremiumAndGateStudio = async () => {
+        try {
+            if (typeof supabaseClient === 'undefined' || typeof PAUI_CONFIG === 'undefined') {
+                return false; // deps not ready
+            }
+
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+            if (authError || !user) {
+                // Not logged in → no premium → hide studio
+                hideStudio();
+                return true;
+            }
+
+            const col = `paui_${PAUI_CONFIG.ssn}`;
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select(col)
+                .eq('id', user.id)
+                .single();
+
+            if (error) {
+                console.warn('PAUI Studio Gate: Profile query failed —', error.message);
+                hideStudio();
+                return true;
+            }
+
+            if (data && data[col] === true) {
+                showStudio();
+            } else {
+                hideStudio();
+            }
+
+            return true; // done
+        } catch (e) {
+            console.error('PAUI Studio Gate: Unexpected error —', e);
+            hideStudio(); // fail-closed: hide on error
+            return true;
+        }
+    };
+
+    const waitForDepsAndRun = () => {
+        let elapsed = 0;
+        const timer = setInterval(async () => {
+            elapsed += POLL_MS;
+
+            const depsReady =
+                typeof supabaseClient !== 'undefined' &&
+                typeof PAUI_CONFIG !== 'undefined';
+            const btnExists = document.querySelector('[data-nav="studio"]') !== null;
+
+            if (depsReady && btnExists) {
+                clearInterval(timer);
+                await checkPremiumAndGateStudio();
+            }
+
+            if (elapsed >= MAX_WAIT_MS) {
+                clearInterval(timer);
+                hideStudio(); // timeout = fail-closed
+                console.warn('PAUI Studio Gate: Timed out waiting for dependencies.');
+            }
+        }, POLL_MS);
+    };
+
+    // Re-gate on auth changes (sign in / sign out mid-session)
+    const listenForAuthChanges = () => {
+        const tryListen = () => {
+            if (typeof supabaseClient === 'undefined') {
+                setTimeout(tryListen, 1000);
+                return;
+            }
+            supabaseClient.auth.onAuthStateChange((event) => {
+                if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+                    setTimeout(checkPremiumAndGateStudio, 600);
+                }
+            });
+        };
+        tryListen();
+    };
+
+    // Boot
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            waitForDepsAndRun();
+            listenForAuthChanges();
+        });
+    } else {
+        waitForDepsAndRun();
+        listenForAuthChanges();
+    }
+})();
+    </script>
+</body>
+
+</html>
