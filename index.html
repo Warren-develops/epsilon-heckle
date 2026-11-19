@@ -1514,8 +1514,8 @@ You are embedded inside Epsilon Heckle, which has:
 const PAUI_CONFIG = {
     ssn: 'hck',
     lsn: 'Epsilon Heckle',
-    pnb: ['studio'],
-    npnb: ['library', 'play', 'videos', 'news', 'community'],
+    pnb: [],
+    npnb: ['library', 'play', 'videos', 'news', 'community', 'studio'],
 };
 // ============================================
 // PAUI CORE — don't touch below
@@ -2655,10 +2655,7 @@ window.PAUI_THEME_COLOR = '#FF0000';
 
     const hideStudio = () => {
         const btn = document.querySelector('[data-nav="studio"]');
-        if (btn) {
-            btn.style.display = 'none';
-            console.log('PAUI Studio Gate: Hidden — user is not premium.');
-        }
+        if (btn) btn.style.display = '';
     };
 
     const showStudio = () => {
